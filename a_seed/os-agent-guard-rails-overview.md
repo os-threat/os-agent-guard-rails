@@ -1,40 +1,77 @@
-# OS-Agent Guard Rails and Testing Scenarios Overview
+# OS-Agent RPA Guard Rails Plan and Testing Scenarios
 
 ## Project Overview
 
-OS-Agent Guard Rails is an OpenClaw plugin and skill that provides a guard rails for OpenClaw tasks and processes so it can be used in Robotic Process Automation (RPA) for business automation, without any errors or exceptions.
+OS-Agent RPA Guard Rails is an OpenClaw plugin and skill that provides a guard rails for OpenClaw tasks and processes so it can be used in Robotic Process Automation (RPA) for business automation, without any errors or exceptions.
 
-Initially, the User will have an existing database or service with a known schema that they want to setup business rules for, as guard rails for automation processing. Later on, the User will be able to setup business rules for new tasks or services, without any coding or configuration.
+Initially, the User will have an existing database or service with a known schema that they want to setup business rules for, as guard rails for automation processing. Thus we build two dummy applications, one based on a postgres/sql database, and one based on a REST API service, both filled with data to demonstrate the capability of the guard rails, each documented through a scenario plan, describing the set of rules and tasks to demonstrate the power of the guard rails for that scenario.
+
+Later on, the User will be able to setup business rules for new tasks or services, without any coding or configuration. 
 
 ## Background
 
-Many apps are based on databases that do no suit agents, they do not enable meta-queiries to idnetify what types are in the database, they do not include business rules, and for many reasons cannot act as agent guard rails. They can only be content the agent reads. This guardrails project is based on ideas in the book described in the directory agent_book.
+Many apps are based on databases that do not suit agents, they do not enable meta-queiries to identify what types are in the database, they do not include business rules, and for many reasons cannot act as agent guard rails. Further, API services also do not enable business rules. They can only be content the agent reads. This guardrails project is based on ideas in the book described in the directory agent_book.
 
 ## Aims
 
-The aim is build an RPA plugin/skill for OpenClaw to provide:
+The aim is to build an RPA plugin/skill for OpenClaw to provide:
 
 1. A simple user interface to setup rules on applications and API's  to guarantee task effectiveness by using MCP queries on a shadow TypeDB database to enforce agent rules for each data record they process
-2. A TypeDB Promise Graph setup to enable advanced agent orchestration, so that task promises are kept, and results are recorded in the TypeDB database for every task, so that the user can always be sure that the task will be completed using the rules and data, and the results are recorded in the TypeDB database.
+2. A TypeDB Promise Graph MCP Server to enable advanced agent orchestration, so that task promises are kept, and results are recorded in the TypeDB database for every task, so that the user can always be sure that the task will be completed using the rules and data, and the results are recorded in the TypeDB database.
 3. A simple user interface to setup agents to run RPA tasks with our plugin/skill to process the tasks, where the agent will use the MCP server to check the logic for every data record and issue/vote on every Promise needed for the task.
 4. A simple user interface to review the results of the tasks, and to appeal or override the decisions of the guard rails. The effectiveness of any task or agent can be clarified through a simple dashboard of the results of the tasks, and the effectiveness of the guard rails.
 
+In order to test this OS-Agent RPA Guard Rails plugin/skill, we need to build two detailed scenarios to tell the story, each with two parts, firstly a detailed plan for a complete mini app for each scenario, each filled with a few hundred rows of generated data appropriate for the scenario. Secondly a separate scenario plan outlining how this RPA plugin/skill enables users to:
+
+1. Connect to this dummy database or API, 
+2. Set up rules to suit their scenario, then 
+3. Setup RPA tasks that use the rules,  
+4. Setup and schedule tasks and then 
+5. Evaluate the results, examine the agent statistics of the promises, and the effectiveness of the guard rails.
+
+Ideally, these guaranteed results are performed on domains and functions of real consequences (medicine and finances), life or death stuff, so the scenarios should also include a quick, medium, and longer demo plan to demonstrate the capability to an investor. Also, the scenarios should be designed to be performed on a local machine (WSL & Docker Desktop), so that the investor can see the results of the tasks, and the effectiveness of the guard rails.
+
+## Deliverables
+
+**STAGE 1: Documentation** In the first stage, we need to deliver the following:
+
+1. A detailed plan of how to implement the plugin/skill in OpenClaw, and document it in the directory (plan\rpa_guidelines_plan\PLAN.md). The plan needs to be sufficient to allow you to flawlessly implement the plugin/skill in OpenClaw, and to demonstrate the capability to an investor. Include diagrams of the user journey needed to register a new application/API service, setup rules, schedule tasks, and review the results of the tasks. Include all of the information needed to convert the plan into github issues and develop the code in the correct order. Include a full testing approach to ensure the plugin/skill works correctly.
+2. A detailed plan to build a complete mini app for each scenario and run it in docker desktop(plan\medical_app_scenario\PLAN.md and plan\financial_planner_api_scenario\PLAN.md), each filled with a few hundred rows of generated data appropriate for both the sql and the api scenario. Make sure the web iFrame user interface for each mini app contains all of the data views and forms necessary to use the app, and that the data is loaded and displayed correctly.
+3. A detailed plan for each scenario (plan\medical_app_scenario\SCENARIO.md and plan\financial_planner_api_scenario\SCENARIO.md) to describe how this RPA plugin/skill enables users to:
+   - Connect to the dummy database or API service, 
+   - Set up rules to suit their scenario, then 
+   - Setup RPA tasks that use the rules,  
+   - Setup and schedule tasks and then 
+   - Evaluate the results, examine the agent statistics of the promises, and the effectiveness of the guard rails.
+4. A detailed plan to demonstrate this capability to an investor, including a 1-min demo, a 5-min demo and a 20-min demo plan (plan\financial_planner_api_scenario\DEMO.md and plan\medical_app_scenario\DEMO.md)
+5. A README.md file in the root directory of the repository to describe the project, and link to the plan and scenario documents, and an update to the project README.md to include the new plugin/skill.
+
+**STAGE 2: Implementation** Once these documentation and scenario plans are complete, we can move to implementation:
+
+1. Implement the medical app scenario, load the data and test the user interface (code\medical_app_scenario)
+2. Implement the financial planner api scenario, load the data and test the user interface (code\financial_planner_api_scenario)
+3. Implement the RPA plugin/skill in OpenClaw, and test it with the built in testing framework (code\rpa_plugin_skill)
+4. I will then manually run through the medical app scenario doc to create new rules, setup tasks, schedule them and review their accuracy and effectiveness using the plugin/skill user interface (plan\medical_app_scenario\SCENARIO.md)
+5. I will then manually run through the financial planner api scenario doc to create new rules, setup tasks, schedule them and review their accuracy and effectiveness using the plugin/skill user interface (plan\financial_planner_api_scenario\SCENARIO.md)
+6. I will then manually demonstrate the capability to an investor, including a 1-min demo, a 5-min demo and a 20-min demo plan using the user interface of the plugin/skill (plan\financial_planner_api_scenario\DEMO.md and plan\medical_app_scenario\DEMO.md)
+
 ## User Benefits
 
-For the user, the plugin provides an RPA rules user interface on a localhost port, so they can construct a series of business rules they wish to apply to ab existing database or service, and store them locally in TypeDB. The user can then setup agents to run tasks using our plugin/skill to process the permissions/logic for each task, and coordinate through promises by interacting with our dynamically generated MCP server. In the background, OS Agent RPA Guard Rails will dynamically make schemas in TypeDB to shadow existing databases and API services, including their key ids, initially based on transpiling an SQL schema into a TypeQL schema, or transpiling Swagger documentation into a TypeQL schema. Based on the rules put forward, OS Agent RPA Guard Rails will auto-generate SQL or API commands to extract the data needed for the task, and generate the TypeQL statements needed to insert the shadow data into TypeDB. Further, agents will coordinate and record their results on every task using Promise contracts. Every decision must be accounted for. 
+For the user, the plugin provides an RPA rules user interface on a localhost port, so they can construct a series of business rules they wish to apply to ab existing database or service, and store them locally in TypeDB. The user can then setup agents to run tasks using our plugin/skill to process the permissions/logic for each task, and coordinate through promises by interacting with our dynamically generated MCP server. In the background, OS Agent RPA Guard Rails will dynamically make schemas in TypeDB to shadow existing databases and API services, including their key ids, initially based on transpiling an SQL schema into a TypeQL schema, or transpiling Swagger documentation into a TypeQL schema. Based on the rules put forward, OS Agent RPA Guard Rails will auto-generate SQL or API commands to extract the data needed for the shadow system to make decisions for the task, and generate the TypeQL statements needed to insert this shadow data into TypeDB. Further, agents will coordinate and record their results on every task using Promise contracts. Every decision and outcome must be accounted for, and available for users to review. 100% accurate RPA, with full audit trail, is a powerful feature, and this plugin/skill will enable it.
 
 ## Basic Flow of the Plugin/Skill
 
-The user registers a new application or API service, and then registers business rules for it in a user interface in natural language:
-
-1. The natrural language rules are converted to Horn Logic IF, Then ELSE rules, based on the entities known from the schema. The users enter natura langauge rules in a basic list form on the left side of the ui, and an agent converts them into IF Then Else diagrams on the right
-2. These If Then else rules are converted into functions in the TypeQL declartive data language, and inserted into the schema
-3. These If Then else statements are converted into SQL statements to extract all of the data needed from the current database to be able to answer the rules
-4. These SQL export staatements are then converted into typeQL import statements to import the data into TypeDB
-5. An MCP server is generated from the new TypeQL functions, and enables the agent to check the logic for evey data record necessary for the task
-6. After the rules are setup, the user gives an automation task to an agent to process, and the agent will use the MCP server to check the logic for every data record necessary for the task, and issue/vote on every Promise needed for the task.
-7. An RPA automation user interface is provided to the user to setup tasks, schedule tasks, review the results of the tasks, and to appeal or override the decisions of the guard rails
-8. A TypeDB database is used to contain the results of all rpa agent tasks, so that the agent issues a promise to the user on each execution that the task will be completed, and the user can review the results of the tasks in the logical database. If other agents are required to judge the effectiveness of promises, then build that in too. Effectively a detailed record of the agents progress and results on every task can always be traced back to the original database and rules that were applied.
+1. **Register:** The user registers a new application or API service in the user Interface, 
+2. **Background:** In the background, the plugin/skill will request the SQL schema or REST API Swagger documentation, and use it to dynamically generate a TypeQL schema, create a new database, and load the schema for the shadow system, ready for data
+3. **Rules:** The user enters the rules area for that registered application or API service, and creates and manages rules in a rule management interface. The default view is the list of rules. From there one can edit an existing rule, or create a new rule on a rule composer page, where the natural language for the rules is entered on the left side of the ui, and the Horn Logic IF, Then ELSE rules and diagrams are displayed on the right hand side of the ui in the Logic viewer tab.
+4. **Background:** In the background, this list of If Then else rules are converted into functions in the TypeQL declartive data language, appended to the schema, which then updates the shadow system. The user can view the TypeQL functions in the TypeQL viewer tab on the right hand side of the ui. At this stage, the database still has no data, only schema
+5. **MCP Server:** An MCP server is dynamicallygenerated from the new TypeQL functions, and the Promise Graph MCP Server enables the agent to check the logic for evey data record necessary for the task
+6. **Task:** After the rules are setup, the user gives an automation task to an agent to process. An RPA automation user interface is provided to the user to setup tasks, schedule tasks, review the results of the tasks, and to appeal or override the decisions of the guard rails 
+7. **Background:** In the background, the plugin/skill will generate the SQL or API commands to extract the data needed for the shadow system to make decisions for the task, and generate the TypeQL statements needed to insert this shadow data into TypeDB.
+8. **Task:** The agent will use the MCP server to check the logic for every data record necessary for the task, and issue/vote on every Promise needed for the task.
+9. **Background:** A TypeDB database is used to contain the results of all rpa agent tasks, so that the agent issues a promise to the user on each execution that the task will be completed, and the user can review the results of the tasks in the logical database. If other agents are required to judge the effectiveness of promises, then build that in too. Effectively a detailed record of the agents progress and results on every task can always be traced back to the original database and rules that were applied.
+10. **Review:** The user can review the results of the tasks in a user interface, and the effectiveness of the guard rails in a dashboard. 
+11. **Review:** Ideally, using the two application scenarios we can test agents without guardrails and agents with guard rails on the same set of rpa tasks , and compare the results.
 
 ## Plan of the OS Agent RPA Guard Rails Plugin/Skill
 
@@ -125,11 +162,11 @@ The medical app needs to consist of the following components:
 3. All of the import statements to load the dummy data into the database and initialise the system
 4. A simple script to install and run the postgres/sql database in docker
 
-The medical app should be constructed in a way that is easy to understand and follow, and that is easy to modify and extend.
+The medical app should be constructed in a way that is easy to understand and follow, and that is easy to modify and extend (plan\medical_app_scenario\PLAN.md).
 
 #### Medical App Rules and Tasks Scenario
 
-Build the following
+Build the following (plan\medical_app_scenario\SCENARIO.md and plan\medical_app_scenario\DEMO.md):
 
 A. A series of powerful rules that can be applied to the dummy medical app through the openclaw ui, to demonstrate the power of the guard rails
 B. A plan to use the plugin/skill to automate the dummy app, including all of the steps needed for the new user to create the rules, schedule the tasks, and to review the results. Try to select rules and tasks that have real life-saving capability Include as many functions as possible on each scenario to demonstrate the power of the guard rails.
@@ -307,11 +344,11 @@ The financial planner dummy service needs to consist of the following components
 3. Seed scripts / import statements to load diverse dummy households (accumulation, near-retirement, business owner, high debt, accredited vs not) so guard-rail rules have edge cases
 4. Docker compose (or similar) to run database + API + UI, with automated smoke tests
 
-The financial planner app should be constructed in a way that is easy to understand and follow, and that is easy to modify and extend.
+The financial planner app should be constructed in a way that is easy to understand and follow, and that is easy to modify and extend (plan\financial_planner_api_scenario\PLAN.md).
 
 #### Financial Planner Rules and Tasks Scenario
 
-Build the following
+Build the following (plan\financial_planner_api_scenario\SCENARIO.md and plan\financial_planner_api_scenario\DEMO.md):
 
 A. A series of powerful rules that can be applied to the dummy financial planner app through the openclaw ui, to demonstrate the power of the guard rails (e.g. KYC must be verified before any `executed` recommendation; risk_tolerance must align with proposed product risk; concentration and liquidity checks; accredited-investor-only products blocked unless `accredited_investor`; beneficiary flags for insurance-linked actions; debt-to-income or emergency-fund minimums before aggressive contribution changes)
 B. A plan to use the plugin/skill to automate the dummy app, including all of the steps needed for the new user to create the rules, schedule the tasks, and to review the results. Include as many TypeQL-backed checks / MCP-exposed functions as possible (net worth snapshot, goal funding ratio, suitability chain, rollover eligibility, tax-advantaged account caps awareness, etc.)
