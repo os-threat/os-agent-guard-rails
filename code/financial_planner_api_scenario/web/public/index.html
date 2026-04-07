@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Financial Planner Demo</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="top">
+    <h1>Financial planner demo</h1>
+    <p class="muted">Fictional data — not investment advice.</p>
+  </header>
+
+  <nav class="tabs">
+    <button type="button" data-tab="dash" class="active">Dashboard</button>
+    <button type="button" data-tab="client">Client</button>
+    <button type="button" data-tab="rec">Recommendation</button>
+    <button type="button" data-tab="trade">Trade</button>
+  </nav>
+
+  <main>
+    <section id="panel-dash" class="panel active">
+      <h2>Dashboard</h2>
+      <div id="dash-stats" class="stats"></div>
+    </section>
+
+    <section id="panel-client" class="panel">
+      <h2>Client detail</h2>
+      <label>Client id <input id="client-id" type="text" value="C-ALLOW" /></label>
+      <button type="button" id="btn-load-client">Load</button>
+      <pre id="client-out" class="out"></pre>
+    </section>
+
+    <section id="panel-rec" class="panel">
+      <h2>Recommendation</h2>
+      <p class="muted">Sends <code>POST /v1/recommendations</code> with <code>Idempotency-Key</code>.</p>
+      <label>Client id <input id="rec-client" type="text" value="C-ALLOW" /></label>
+      <label>Symbol <input id="rec-symbol" type="text" value="VTI" /></label>
+      <label>Dominant asset class
+        <select id="rec-class">
+          <option value="equity">equity</option>
+          <option value="fixed_income">fixed_income</option>
+          <option value="long_duration">long_duration</option>
+        </select>
+      </label>
+      <label><input id="rec-acc" type="checkbox" /> Instrument requires accredited</label>
+      <label><input id="rec-long" type="checkbox" /> Long-duration-only stance</label>
+      <label>Horizon (years) <input id="rec-horizon" type="number" value="15" /></label>
+      <button type="button" id="btn-rec">Submit</button>
+      <pre id="rec-out" class="out"></pre>
+    </section>
+
+    <section id="panel-trade" class="panel">
+      <h2>Trade (preview → execute)</h2>
+      <p class="muted">Preview then execute with the same account, symbol, and session.</p>
+      <label>Client id <input id="tr-client" type="text" value="C-ALLOW" /></label>
+      <label>Account id <input id="tr-acct" type="text" placeholder="Load client first or use seed id" /></label>
+      <label>Symbol <input id="tr-symbol" type="text" value="VTI" /></label>
+      <label>Session <input id="tr-session" type="text" value="demo-session-1" /></label>
+      <label>Quantity <input id="tr-qty" type="number" value="5" /></label>
+      <label><input id="tr-fee" type="checkbox" checked /> Trade incurs fee (needs disclosure)</label>
+      <button type="button" id="btn-preview">Preview</button>
+      <button type="button" id="btn-exec" disabled>Execute</button>
+      <pre id="trade-out" class="out"></pre>
+    </section>
+  </main>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>
