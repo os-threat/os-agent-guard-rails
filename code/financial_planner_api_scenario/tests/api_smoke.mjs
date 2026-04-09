@@ -32,6 +32,15 @@ async function main() {
   const c = await req("/v1/clients?limit=1");
   if (!c.res.ok) throw new Error("clients list failed");
 
+  const docs = await req("/docs/");
+  if (!docs.res.ok) throw new Error("swagger /docs/ failed");
+
+  const oj = await req("/openapi.json");
+  if (!oj.res.ok) throw new Error("openapi.json failed");
+  if (!oj.data || typeof oj.data !== "object" || !oj.data.openapi) {
+    throw new Error("openapi.json not a valid OpenAPI object");
+  }
+
   console.log("api_smoke: ok");
 }
 

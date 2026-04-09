@@ -175,6 +175,55 @@ h1, h2, h3 {
   font-size: 0.85rem;
 }
 
+.record-list li.record-li.selected {
+  border-color: var(--ok);
+  box-shadow: 0 0 0 1px rgba(22, 163, 74, 0.35);
+}
+
+.record-list li.record-li-no-edit {
+  opacity: 0.75;
+}
+
+.form-mode-label {
+  flex: 1 1 100%;
+  margin: 0.25rem 0;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.help-panel {
+  max-width: 52rem;
+}
+
+.help-panel h3 {
+  margin-top: 1.25rem;
+}
+
+.help-panel h3:first-child {
+  margin-top: 0;
+}
+
+.help-panel code {
+  font-size: 0.85em;
+  background: #0b1220;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+}
+
+.help-panel ul {
+  margin: 0.35rem 0 0 1.25rem;
+  padding: 0;
+}
+
+.help-panel a {
+  color: #7dd3fc;
+}
+
 .json-diagnostics {
   border: 1px solid var(--line);
   border-radius: 0.5rem;

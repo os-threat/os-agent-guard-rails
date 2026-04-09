@@ -54,6 +54,10 @@ API:
 - `http://localhost:8082/`
 - `http://localhost:8082/admin/health`
 - `http://localhost:8082/admin/integration-contract`
+- **Swagger UI:** `http://localhost:8082/docs/` (OpenAPI: `http://localhost:8082/openapi.json`)
+- **Same-origin via nginx (port 8083):** `http://localhost:8083/api/docs/`
+
+In the web UI, open the **Help** tab for how to select records, use **Clear** for new rows, and run seeds.
 
 ## Configuration
 

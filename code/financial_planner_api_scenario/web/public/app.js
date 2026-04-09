@@ -21,6 +21,12 @@
       mode: "dashboard"
     },
     {
+      id: "help",
+      title: "Help",
+      help: "How to add data, edit records, and find API docs.",
+      mode: "help"
+    },
+    {
       id: "admin",
       title: "Admin",
       help: "Job history and audit records.",
@@ -126,6 +132,69 @@
   function timelineSortKey(isoDate) {
     if (!isoDate || typeof isoDate !== "string") return "9999-12-31";
     return isoDate.slice(0, 10);
+  }
+
+  function renderHelp(panel, jsonOutput) {
+    const apiBase = getApiBaseUrl();
+    const swaggerUrl = `${apiBase}/docs/`;
+    const openapiUrl = `${apiBase}/openapi.json`;
+    const uiOrigin = window.location.origin;
+    const healthUrl = `${apiBase}/admin/health`;
+
+    const formCard = panel.querySelector(".form-card");
+    panel.querySelector(".list-meta").textContent = "Shortcuts";
+    formCard.innerHTML = `
+      <div class="help-panel">
+        <h3>Getting started</h3>
+        <p class="muted small">Start the stack with <code>docker compose up --build</code> from <code>code/financial_planner_api_scenario</code>.</p>
+        <ul>
+          <li><strong>Web UI</strong> (this app): <code>${uiOrigin}/</code></li>
+          <li><strong>API base</strong> used by the UI right now: <code>${apiBase}</code></li>
+          <li><strong>Health</strong>: <code>${healthUrl}</code></li>
+        </ul>
+
+        <h3>Adding and editing data</h3>
+        <p>On each object tab (Clients, Households, …):</p>
+        <ul>
+          <li><strong>Select a record</strong> — click a row in <em>Records</em>. The form fills with that row’s fields. The button reads <strong>Update</strong>; saving sends <code>PATCH</code> to the same collection path with the record <code>id</code>.</li>
+          <li><strong>Clear</strong> — clears the form and selection. The button reads <strong>Create</strong>; saving sends <code>POST</code> to create a new row.</li>
+          <li>Rows <strong>without</strong> an <code>id</code> cannot be edited in place (list only).</li>
+        </ul>
+
+        <h3>Demo data</h3>
+        <ul>
+          <li>Open <strong>Admin</strong> → <strong>Run Rich Seed</strong> for a large synthetic dataset.</li>
+          <li><strong>Run Fixture Seed</strong> loads deterministic clients such as <code>C-FIX-RENEWAL</code>, <code>C-FIX-TAX</code>, etc.</li>
+        </ul>
+
+        <h3>API documentation (Swagger)</h3>
+        <p>Open <a href="${swaggerUrl}" target="_blank" rel="noopener">Swagger UI</a> (<code>${swaggerUrl}</code>). Raw OpenAPI JSON: <a href="${openapiUrl}" target="_blank" rel="noopener"><code>/openapi.json</code></a>.</p>
+        <p class="muted small">If the UI is on port 8083, the API is usually proxied at <code>${uiOrigin}/api/</code>, so Swagger is also at <code>${uiOrigin}/api/docs/</code>.</p>
+
+        <h3>Clients tab quick actions</h3>
+        <p class="muted small">Select a client row (or enter an id), then create a follow-up task or load recommendations for that client.</p>
+      </div>
+    `;
+
+    const listCard = panel.querySelector(".list-card");
+    listCard.innerHTML = `
+      <h3>Quick links</h3>
+      <ul class="record-list">
+        <li><a href="${swaggerUrl}" target="_blank" rel="noopener">Swagger UI</a></li>
+        <li><a href="${openapiUrl}" target="_blank" rel="noopener">OpenAPI JSON</a></li>
+        <li><a href="${healthUrl}" target="_blank" rel="noopener">Health</a></li>
+        <li><a href="#admin" id="help-goto-admin">Go to Admin tab</a></li>
+      </ul>
+    `;
+    const goAdmin = listCard.querySelector("#help-goto-admin");
+    if (goAdmin) {
+      goAdmin.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        setActiveTab("admin");
+      });
+    }
+
+    jsonOutput.textContent = JSON.stringify({ apiBase, swaggerUrl, openapiUrl, uiOrigin }, null, 2);
   }
 
   async function renderDashboard(panel, jsonOutput) {
@@ -236,25 +305,74 @@
     return d.toISOString().slice(0, 10);
   }
 
+  function populateFormFromRecord(form, fields, rec) {
+    for (const f of fields) {
+      const input = form.querySelector(`[name="${f}"]`);
+      if (!input) continue;
+      const v = rec[f];
+      if (v === undefined || v === null) input.value = "";
+      else if (typeof v === "boolean") input.value = String(v);
+      else if (typeof v === "object") input.value = JSON.stringify(v);
+      else input.value = String(v);
+    }
+  }
+
   async function renderObjectTab(panel, tab, jsonOutput) {
     const form = panel.querySelector(".object-form");
     const submitBtn = panel.querySelector(".submit-btn");
+    const formActions = panel.querySelector(".form-actions");
     submitBtn.form = "";
     form.innerHTML = "";
+    formActions.querySelector(".clear-form-btn")?.remove();
+    formActions.querySelector(".form-mode-label")?.remove();
 
     panel.querySelectorAll(".quick-actions").forEach((el) => el.remove());
+
+    let editingId = null;
+    let lastItems = [];
+
+    const modeLabel = document.createElement("span");
+    modeLabel.className = "form-mode-label muted small";
+    const clearBtn = document.createElement("button");
+    clearBtn.type = "button";
+    clearBtn.className = "submit-btn secondary clear-form-btn";
+    clearBtn.textContent = "Clear";
+    formActions.insertBefore(modeLabel, submitBtn);
+    formActions.insertBefore(clearBtn, submitBtn);
+
+    function setModeLabel() {
+      modeLabel.textContent = editingId
+        ? `Editing record id: ${editingId} — Save runs PATCH.`
+        : "New record — Save runs POST. Select a row below to edit.";
+    }
+
+    function clearSelection() {
+      editingId = null;
+      form.reset();
+      panel.querySelectorAll(".record-li.selected").forEach((el) => el.classList.remove("selected"));
+      submitBtn.textContent = "Create";
+      setModeLabel();
+    }
+
+    clearBtn.addEventListener("click", clearSelection);
 
     if (tab.readonly || !tab.fields?.length) {
       form.innerHTML = '<p class="muted small">Read-only view for this tab.</p>';
       submitBtn.style.display = "none";
+      clearBtn.style.display = "none";
+      modeLabel.textContent = "";
     } else {
       submitBtn.style.display = "inline-block";
+      clearBtn.style.display = "inline-block";
+      submitBtn.textContent = "Create";
+      setModeLabel();
+
       if (tab.quickActions) {
         const qa = document.createElement("div");
         qa.className = "quick-actions";
         qa.innerHTML = `
           <h4>Quick actions</h4>
-          <p class="muted small">Click a client row to set the client id, then create a task or load cross-product recommendations.</p>
+          <p class="muted small">Select a client row below (or enter an id), then create a task or load recommendations.</p>
           <div class="qa-row">
             <label for="qa-client-id">Client ID</label>
             <input id="qa-client-id" type="text" placeholder="e.g. C-FIX-RENEWAL" />
@@ -303,26 +421,36 @@
           }
         });
       }
+
       for (const field of tab.fields) {
         const row = document.createElement("div");
         row.className = "form-row";
         row.innerHTML = `
-          <label for="f-${field}">${field}</label>
-          <input id="f-${field}" name="${field}" type="${toInputType(field)}" />
+          <label for="f-${tab.id}-${field}">${field}</label>
+          <input id="f-${tab.id}-${field}" name="${field}" type="${toInputType(field)}" />
         `;
         form.appendChild(row);
       }
       form.id = `form-${tab.id}`;
       submitBtn.form = form.id;
+
       form.addEventListener("submit", async (ev) => {
         ev.preventDefault();
         const body = parseBodyFromForm(form, tab.fields);
         try {
-          await callJson(tab.endpoint, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body)
-          });
+          if (editingId) {
+            await callJson(`${tab.endpoint}/${encodeURIComponent(editingId)}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(body)
+            });
+          } else {
+            await callJson(tab.endpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(body)
+            });
+          }
           await renderObjectTab(panel, tab, jsonOutput);
         } catch (e) {
           alert(`Save failed: ${e}`);
@@ -331,29 +459,37 @@
     }
 
     const response = await callJson(`${tab.endpoint}?limit=50`);
+    lastItems = response.items || [];
     panel.querySelector(".list-meta").textContent = `Total: ${response.total ?? 0}`;
     const ul = panel.querySelector(".record-list");
-    ul.innerHTML = (response.items || [])
+    ul.innerHTML = lastItems
       .map((x) => {
         const title = x.id || x.client_id || x.household_name || "record";
         const idAttr = x.id ? ` data-id="${String(x.id).replace(/"/g, "")}"` : "";
-        return `<li${idAttr} class="record-li"><strong>${title}</strong><br/>${Object.entries(x)
+        const noIdClass = x.id ? "record-li" : "record-li record-li-no-edit";
+        return `<li${idAttr} class="${noIdClass}"><strong>${title}</strong><br/>${Object.entries(x)
           .slice(0, 4)
           .map(([k, v]) => `${k}: ${String(v)}`)
           .join(" | ")}</li>`;
       })
       .join("");
 
-    if (tab.quickActions) {
-      const qa = panel.querySelector(".quick-actions");
-      const input = qa?.querySelector("#qa-client-id");
-      ul.querySelectorAll(".record-li[data-id]").forEach((li) => {
-        li.style.cursor = "pointer";
-        li.addEventListener("click", () => {
-          if (input) input.value = li.getAttribute("data-id") || "";
-        });
+    const qaInput = panel.querySelector("#qa-client-id");
+    ul.querySelectorAll(".record-li[data-id]").forEach((li) => {
+      li.style.cursor = "pointer";
+      li.addEventListener("click", () => {
+        const id = li.getAttribute("data-id");
+        if (!id || tab.readonly || !tab.fields?.length) return;
+        ul.querySelectorAll(".record-li.selected").forEach((x) => x.classList.remove("selected"));
+        li.classList.add("selected");
+        editingId = id;
+        const rec = lastItems.find((r) => r.id === id);
+        if (rec) populateFormFromRecord(form, tab.fields, rec);
+        submitBtn.textContent = "Update";
+        setModeLabel();
+        if (tab.quickActions && qaInput && rec?.client_id) qaInput.value = String(rec.client_id);
       });
-    }
+    });
 
     jsonOutput.textContent = JSON.stringify(response, null, 2);
   }
@@ -371,10 +507,17 @@
     panel.querySelector(".panel-help").textContent = tab.help || "Object workspace";
     const refreshBtn = panel.querySelector(".refresh-btn");
     const jsonOutput = panel.querySelector(".json-output");
+    const formActionsEl = panel.querySelector(".form-actions");
+    if (tab.mode === "help") {
+      formActionsEl.style.display = "none";
+    } else {
+      formActionsEl.style.display = "";
+    }
     root.appendChild(panel);
 
     const refresh = async () => {
       if (tab.mode === "dashboard") return renderDashboard(panel, jsonOutput);
+      if (tab.mode === "help") return renderHelp(panel, jsonOutput);
       if (tab.mode === "admin") return renderAdmin(panel, jsonOutput);
       return renderObjectTab(panel, tab, jsonOutput);
     };
