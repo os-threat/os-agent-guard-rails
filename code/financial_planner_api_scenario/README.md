@@ -24,14 +24,17 @@ code/financial_planner_api_scenario/
     src/
       routes/
       services/
-      rules/
-      ui/
   db/
     mongo-init/
-  seed/
+  package.json
   tests/
+    api_smoke.mjs
+    ui_smoke.mjs
+    fixtures_api.mjs
+    api_journey.mjs
   web/
     public/
+    nginx/
 ```
 
 ## Startup (default)
@@ -78,10 +81,22 @@ npm run test:api-smoke
 npm run test:ui-smoke
 ```
 
+## Scenario test suite
+
+From `code/financial_planner_api_scenario`:
+
+```bash
+npm install
+npm test
+```
+
+This runs OpenAPI lint (Spectral), fixture/API checks, and journey tests before smoke tests.
+
 ## Notes
 
 - Rules management and decision engine logic are implemented in the OS Agent RPA Guardrails plugin, not this mini-app repository.
 - This repository provides API/UI/data workflows and metadata hooks needed by the plugin.
+- Web UI API base is configurable: default is same-origin `/api` when served by nginx on `:8083`; you can override with `?api=http://localhost:8082`.
 
 ## Troubleshooting
 

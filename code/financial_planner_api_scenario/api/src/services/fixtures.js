@@ -21,6 +21,8 @@ async function seedScenarioFixtures() {
   await db.collection("tasks").deleteMany({ client_id: { $in: fixtureClientIds } });
   await db.collection("communications").deleteMany({ client_id: { $in: fixtureClientIds } });
   await db.collection("anniversary_triggers").deleteMany({ client_id: { $in: fixtureClientIds } });
+  await db.collection("addresses").deleteMany({ client_id: { $in: fixtureClientIds } });
+  await db.collection("recommendations").deleteMany({ client_id: { $in: fixtureClientIds } });
 
   const nowIso = new Date().toISOString();
 
@@ -160,6 +162,47 @@ async function seedScenarioFixtures() {
     }
   ];
 
+  const fixtureAddresses = clients.map((c) => ({
+    id: `ADDR-${c.id}`,
+    client_id: c.id,
+    line1: c.address.split(",")[0]?.trim() || "1 Demo St",
+    suburb: c.address.includes("Melbourne")
+      ? "Melbourne"
+      : c.address.includes("Sydney")
+        ? "Sydney"
+        : c.address.includes("Brisbane")
+          ? "Brisbane"
+          : "Perth",
+    state: c.address.includes("VIC") ? "VIC" : c.address.includes("NSW") ? "NSW" : c.address.includes("QLD") ? "QLD" : "WA",
+    postcode: c.address.match(/\d{4}/)?.[0] || "3000",
+    country: "AU",
+    created_at: nowIso,
+    updated_at: nowIso
+  }));
+
+  const fixtureRecommendations = [
+    {
+      id: "REC-FIX-RENEWAL",
+      client_id: "C-FIX-RENEWAL",
+      title: "Bundle renewal outreach with household review",
+      rationale: "cross_product_demo",
+      products_touched: ["insurance", "investment"],
+      status: "presented",
+      created_at: nowIso,
+      updated_at: nowIso
+    },
+    {
+      id: "REC-FIX-TAX",
+      client_id: "C-FIX-TAX",
+      title: "Tax-window super and savings coordination",
+      rationale: "cross_product_demo",
+      products_touched: ["super", "savings"],
+      status: "draft",
+      created_at: nowIso,
+      updated_at: nowIso
+    }
+  ];
+
   await db.collection("clients").insertMany(clients);
   await db.collection("profiles").insertMany(profiles);
   await db.collection("insurance_policies").insertMany(insurancePolicies);
@@ -168,6 +211,8 @@ async function seedScenarioFixtures() {
   await db.collection("tasks").insertMany(tasks);
   await db.collection("communications").insertMany(comms);
   await db.collection("anniversary_triggers").insertMany(anniversaries);
+  await db.collection("addresses").insertMany(fixtureAddresses);
+  await db.collection("recommendations").insertMany(fixtureRecommendations);
 
   const summary = {
     fixture_clients: clients.length,

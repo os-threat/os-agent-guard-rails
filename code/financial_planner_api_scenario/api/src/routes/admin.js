@@ -67,9 +67,20 @@ router.get("/dashboard/metrics", async (_req, res, next) => {
 router.get("/admin/integration-contract", (_req, res) => {
   res.json({
     integration_contract: "financial-v2",
-    required_headers: ["x-correlation-id"],
-    response_metadata: ["_meta.correlation_id", "trace_id for problem+json"],
-    notes: "No rules logic is implemented in this mini-app repository."
+    openapi: "openapi/financial-services.yaml",
+    base_url_direct: `http://localhost:${config.apiPort}`,
+    base_url_iframed: "Same-origin /api prefix when using docker-compose web (nginx → api)",
+    required_headers: ["x-correlation-id (optional; server generates if absent)"],
+    response_metadata: ["_meta.correlation_id on JSON bodies", "trace_id on application/problem+json"],
+    admin_routes: [
+      "GET /admin/health",
+      "GET /admin/jobs",
+      "POST /admin/jobs/seed",
+      "POST /admin/jobs/seed-fixtures",
+      "GET /admin/audit",
+      "GET /admin/integration-contract"
+    ],
+    rules_engine: "FP-R* identifiers in plan/SCENARIO.md are enforced in the OS Agent RPA Guardrails plugin, not this API."
   });
 });
 

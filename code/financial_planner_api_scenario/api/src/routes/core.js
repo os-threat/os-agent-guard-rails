@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const express = require("express");
 const { getDb } = require("../services/db");
 const { sendProblem } = require("../problem");
+const { attachGetPatch } = require("./crudId");
 
 const router = express.Router();
 
@@ -127,5 +128,27 @@ router.post("/v1/important-dates", async (req, res, next) => {
     next(e);
   }
 });
+
+attachGetPatch(router, "/v1/households", "households");
+attachGetPatch(router, "/v1/profiles", "profiles");
+attachGetPatch(router, "/v1/important-dates", "important_dates");
+
+router.get("/v1/addresses", async (req, res, next) => {
+  try {
+    await listCollection(req, res, "addresses");
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.post("/v1/addresses", async (req, res, next) => {
+  try {
+    await createInCollection(req, res, "addresses", ["client_id", "line1", "suburb", "state", "postcode"]);
+  } catch (e) {
+    next(e);
+  }
+});
+
+attachGetPatch(router, "/v1/addresses", "addresses");
 
 module.exports = { coreRouter: router };

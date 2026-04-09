@@ -1,0 +1,91 @@
+name: financial-v2-miniapp
+
+on:
+  push:
+    paths:
+      - "code/financial_planner_api_scenario/**"
+      - "plan/financial_planner_api_scenario/**"
+      - ".github/workflows/financial-v2-miniapp.yml"
+  pull_request:
+    paths:
+      - "code/financial_planner_api_scenario/**"
+      - "plan/financial_planner_api_scenario/**"
+      - ".github/workflows/financial-v2-miniapp.yml"
+
+jobs:
+  contract-and-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: code/financial_planner_api_scenario
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.17.0"
+          cache: "npm"
+          cache-dependency-path: code/financial_planner_api_scenario/package-lock.json
+
+      - name: Install scenario deps
+        run: npm ci
+
+      - name: Lint OpenAPI
+        run: npm run test:spectral
+
+  docker-smoke:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: code/financial_planner_api_scenario
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.17.0"
+          cache: "npm"
+          cache-dependency-path: code/financial_planner_api_scenario/api/package-lock.json
+
+      - name: Start stack
+        run: docker compose up -d --build
+
+      - name: Wait for health
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8082/admin/health >/dev/null; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "API did not become healthy" >&2
+          docker compose ps
+          docker compose logs api
+          exit 1
+
+      - name: Install API deps (host runner for smoke scripts)
+        working-directory: code/financial_planner_api_scenario/api
+        run: npm ci
+
+      - name: Run fixture and journey tests
+        run: |
+          node tests/fixtures_api.mjs
+          node tests/api_journey.mjs
+
+      - name: Run smoke tests
+        working-directory: code/financial_planner_api_scenario/api
+        run: |
+          npm run test:api-smoke
+          npm run test:ui-smoke
+
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs --no-color
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v

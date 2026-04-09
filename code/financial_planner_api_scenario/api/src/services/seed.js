@@ -51,6 +51,8 @@ async function generateRichDataset() {
     "households",
     "profiles",
     "important_dates",
+    "addresses",
+    "recommendations",
     "investment_accounts",
     "investment_holdings",
     "savings_accounts",
@@ -78,6 +80,8 @@ async function generateRichDataset() {
   const households = [];
   const profiles = [];
   const importantDates = [];
+  const addresses = [];
+  const recommendations = [];
   const investmentAccounts = [];
   const investmentHoldings = [];
   const savingsAccounts = [];
@@ -125,6 +129,18 @@ async function generateRichDataset() {
       address: makeAddress(i),
       communication_preference: pick(COMM_PREFS),
       household_id: hh.id,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    });
+
+    addresses.push({
+      id: `ADDR-${id}`,
+      client_id: id,
+      line1: `${10 + (i % 190)} ${pick(STREETS)}`,
+      suburb: pick(SUBURBS),
+      state: pick(STATES),
+      postcode: String(2000 + (i % 799)),
+      country: "AU",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     });
@@ -289,6 +305,30 @@ async function generateRichDataset() {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     });
+
+    if (Math.random() > 0.25) {
+      recommendations.push({
+        id: crypto.randomUUID(),
+        client_id: id,
+        title: pick([
+          "Rebalance growth tilt",
+          "Super co-contribution window",
+          "Insurance gap vs household debt",
+          "Tax-loss harvesting review",
+          "Consolidate duplicate super accounts"
+        ]),
+        rationale: "cross_product_suitability",
+        products_touched: pick([
+          ["investment", "super"],
+          ["insurance", "savings"],
+          ["super", "insurance"],
+          ["investment", "insurance", "super"]
+        ]),
+        status: pick(["draft", "presented", "accepted", "deferred"]),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+    }
   }
 
   for (let k = 0; k < 25; k++) {
@@ -306,6 +346,8 @@ async function generateRichDataset() {
   await db.collection("clients").insertMany(clients);
   await db.collection("profiles").insertMany(profiles);
   await db.collection("important_dates").insertMany(importantDates);
+  await db.collection("addresses").insertMany(addresses);
+  if (recommendations.length) await db.collection("recommendations").insertMany(recommendations);
   await db.collection("investment_accounts").insertMany(investmentAccounts);
   await db.collection("investment_holdings").insertMany(investmentHoldings);
   await db.collection("savings_accounts").insertMany(savingsAccounts);

@@ -39,17 +39,18 @@ code/financial_planner_api_scenario/
     src/
       routes/
       services/
-      rules/
-      ui/
   db/
     mongo-init/
-  seed/
-    generate_data.py or generate_data.js
   docker-compose.yml
+  package.json
+  web/
+    public/
+    nginx/
   tests/
-    test_contract.sh
-    test_rules.spec.ts
-    test_e2e.spec.ts
+    api_smoke.mjs
+    ui_smoke.mjs
+    fixtures_api.mjs
+    api_journey.mjs
 plan/financial_planner_api_scenario/
   PLAN.md
   SCENARIO.md
@@ -223,14 +224,15 @@ Default startup path:
 
 ## 8. Testing strategy
 
-1. **Contract tests** against OpenAPI (`financial-services.yaml`)
-2. **Rule tests** for all named rules in `SCENARIO.md`
+1. **Contract tests** against OpenAPI (`financial-services.yaml`) via Spectral (`npm run test:spectral`)
+2. **Rule ownership note**: FP-R* decisioning is implemented in the Guardrails plugin; mini-app tests validate fixture/API data surfaces used by those rules.
 3. **E2E workflows**:
    - investment + savings + insurance + super mixed journeys
    - anniversary-triggered outreach
    - tax-window communication
    - admin rerun/replay
 4. **UI tests** for tab navigation, forms, and iframe embedding
+5. **Scenario test runner**: scenario-root `npm test` executes spectral + fixture + journey + smoke tests.
 
 ---
 

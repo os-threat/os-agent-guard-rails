@@ -4,6 +4,7 @@ const express = require("express");
 const crypto = require("crypto");
 const { getDb } = require("../services/db");
 const { sendProblem } = require("../problem");
+const { attachGetPatch } = require("./crudId");
 
 const router = express.Router();
 
@@ -24,7 +25,18 @@ async function listCollection(req, res, name) {
 async function createCollection(req, res, name) {
   const db = getDb();
   const body = req.body || {};
-  if (!body.client_id && !body.household_id && !body.segment_id) {
+  if (
+    name === "recommendations" &&
+    !body.client_id
+  ) {
+    return sendProblem(res, 400, "Bad Request", "Missing required field: client_id");
+  }
+  if (
+    name !== "recommendations" &&
+    !body.client_id &&
+    !body.household_id &&
+    !body.segment_id
+  ) {
     return sendProblem(
       res,
       400,
@@ -47,7 +59,8 @@ const resources = [
   "communications",
   "campaigns",
   "anniversary-triggers",
-  "tax-planning-checkpoints"
+  "tax-planning-checkpoints",
+  "recommendations"
 ];
 
 for (const resource of resources) {
@@ -69,6 +82,8 @@ for (const resource of resources) {
       next(e);
     }
   });
+
+  attachGetPatch(router, basePath, collection);
 }
 
 module.exports = { workflowsRouter: router };

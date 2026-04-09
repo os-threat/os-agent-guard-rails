@@ -20,9 +20,12 @@ tags:
   - name: workflows
   - name: admin
   - name: dashboard
+  - name: addresses
+  - name: recommendations
 paths:
   /admin/health:
     get:
+      operationId: adminHealth
       summary: Health check
       tags: [admin]
       responses:
@@ -33,8 +36,51 @@ paths:
               schema:
                 $ref: "#/components/schemas/HealthResponse"
 
+  /admin/jobs/seed:
+    post:
+      operationId: adminJobsSeed
+      summary: Run rich synthetic seed
+      tags: [admin]
+      responses:
+        "201":
+          description: Completed
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /admin/jobs/seed-fixtures:
+    post:
+      operationId: adminJobsSeedFixtures
+      summary: Load deterministic demo fixtures
+      tags: [admin]
+      responses:
+        "201":
+          description: Completed
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /admin/integration-contract:
+    get:
+      operationId: adminIntegrationContract
+      summary: Plugin integration metadata
+      tags: [admin]
+      responses:
+        "200":
+          description: Contract
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
   /admin/jobs:
     get:
+      operationId: adminJobsList
       summary: List admin jobs
       tags: [admin]
       responses:
@@ -47,6 +93,7 @@ paths:
 
   /admin/audit:
     get:
+      operationId: adminAuditList
       summary: List audit records
       tags: [admin]
       responses:
@@ -59,6 +106,7 @@ paths:
 
   /dashboard/metrics:
     get:
+      operationId: dashboardMetrics
       summary: Dashboard metrics
       tags: [dashboard]
       responses:
@@ -71,6 +119,7 @@ paths:
 
   /v1/clients:
     get:
+      operationId: listClients
       summary: List clients
       tags: [clients]
       responses:
@@ -81,6 +130,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ListResponse"
     post:
+      operationId: createClient
       summary: Create client
       tags: [clients]
       requestBody:
@@ -101,6 +151,7 @@ paths:
 
   /v1/clients/{id}:
     get:
+      operationId: getClient
       summary: Get client
       tags: [clients]
       parameters:
@@ -115,6 +166,7 @@ paths:
         "404":
           $ref: "#/components/responses/Problem"
     patch:
+      operationId: patchClient
       summary: Update client
       tags: [clients]
       parameters:
@@ -135,6 +187,7 @@ paths:
 
   /v1/households:
     get:
+      operationId: listHouseholds
       summary: List households
       tags: [households]
       responses:
@@ -145,6 +198,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ListResponse"
     post:
+      operationId: createHousehold
       summary: Create household
       tags: [households]
       requestBody:
@@ -161,8 +215,47 @@ paths:
               schema:
                 $ref: "#/components/schemas/Household"
 
+  /v1/households/{id}:
+    get:
+      operationId: getHousehold
+      summary: Get household by id
+      tags: [households]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Household"
+        "404":
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: patchHousehold
+      summary: Update household
+      tags: [households]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Household"
+        "404":
+          $ref: "#/components/responses/Problem"
+
   /v1/profiles:
     get:
+      operationId: listProfiles
       summary: List advisory profiles
       tags: [profiles]
       responses:
@@ -172,9 +265,67 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ListResponse"
+    post:
+      operationId: createProfile
+      summary: Create profile
+      tags: [profiles]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainRecord"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "400":
+          $ref: "#/components/responses/Problem"
+
+  /v1/profiles/{id}:
+    get:
+      operationId: getProfile
+      summary: Get profile by id
+      tags: [profiles]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: patchProfile
+      summary: Update profile
+      tags: [profiles]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
 
   /v1/important-dates:
     get:
+      operationId: listImportantDates
       summary: List important dates
       tags: [dates]
       responses:
@@ -184,186 +335,1222 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ListResponse"
+    post:
+      operationId: createImportantDate
+      summary: Create important date
+      tags: [dates]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainRecord"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "400":
+          $ref: "#/components/responses/Problem"
+
+  /v1/important-dates/{id}:
+    get:
+      operationId: getImportantDate
+      summary: Get important date by id
+      tags: [dates]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: patchImportantDate
+      summary: Update important date
+      tags: [dates]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
+
+  /v1/addresses:
+    get:
+      operationId: listAddresses
+      summary: List structured addresses
+      tags: [addresses]
+      responses:
+        "200":
+          description: List
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+    post:
+      operationId: createAddress
+      summary: Create address
+      tags: [addresses]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Address"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Address"
+        "400":
+          $ref: "#/components/responses/Problem"
+
+  /v1/addresses/{id}:
+    get:
+      operationId: getAddress
+      summary: Get address by id
+      tags: [addresses]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Address"
+        "404":
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: patchAddress
+      summary: Update address
+      tags: [addresses]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Address"
+        "404":
+          $ref: "#/components/responses/Problem"
 
   /v1/investment-accounts:
     get:
-      summary: List investment accounts
+      operationId: list_investment_accounts
+      summary: List investment-accounts
       tags: [investments]
       responses:
         "200":
-          description: Investment account list
+          description: List
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ListResponse"
-
+    post:
+      operationId: create_investment_accounts
+      summary: Create investment-accounts
+      tags: [investments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainRecord"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "400":
+          $ref: "#/components/responses/Problem"
+  /v1/investment-accounts/{id}:
+    get:
+      operationId: get_investment_accounts
+      summary: Get investment-accounts by id
+      tags: [investments]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: patch_investment_accounts
+      summary: Patch investment-accounts
+      tags: [investments]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
   /v1/investment-holdings:
     get:
-      summary: List investment holdings
+      operationId: list_investment_holdings
+      summary: List investment-holdings
       tags: [investments]
       responses:
         "200":
-          description: Holding list
+          description: List
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ListResponse"
-
+    post:
+      operationId: create_investment_holdings
+      summary: Create investment-holdings
+      tags: [investments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainRecord"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "400":
+          $ref: "#/components/responses/Problem"
+  /v1/investment-holdings/{id}:
+    get:
+      operationId: get_investment_holdings
+      summary: Get investment-holdings by id
+      tags: [investments]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: patch_investment_holdings
+      summary: Patch investment-holdings
+      tags: [investments]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
   /v1/savings-accounts:
     get:
-      summary: List savings accounts
+      operationId: list_savings_accounts
+      summary: List savings-accounts
       tags: [savings]
       responses:
         "200":
-          description: Savings list
+          description: List
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ListResponse"
-
+    post:
+      operationId: create_savings_accounts
+      summary: Create savings-accounts
+      tags: [savings]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainRecord"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "400":
+          $ref: "#/components/responses/Problem"
+  /v1/savings-accounts/{id}:
+    get:
+      operationId: get_savings_accounts
+      summary: Get savings-accounts by id
+      tags: [savings]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: patch_savings_accounts
+      summary: Patch savings-accounts
+      tags: [savings]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
   /v1/super-accounts:
     get:
-      summary: List super accounts
+      operationId: list_super_accounts
+      summary: List super-accounts
       tags: [super]
       responses:
         "200":
-          description: Super account list
+          description: List
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ListResponse"
-
+    post:
+      operationId: create_super_accounts
+      summary: Create super-accounts
+      tags: [super]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainRecord"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "400":
+          $ref: "#/components/responses/Problem"
+  /v1/super-accounts/{id}:
+    get:
+      operationId: get_super_accounts
+      summary: Get super-accounts by id
+      tags: [super]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: patch_super_accounts
+      summary: Patch super-accounts
+      tags: [super]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
   /v1/super-contributions:
     get:
-      summary: List super contributions
+      operationId: list_super_contributions
+      summary: List super-contributions
       tags: [super]
       responses:
         "200":
-          description: Contribution list
+          description: List
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ListResponse"
-
+    post:
+      operationId: create_super_contributions
+      summary: Create super-contributions
+      tags: [super]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainRecord"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "400":
+          $ref: "#/components/responses/Problem"
+  /v1/super-contributions/{id}:
+    get:
+      operationId: get_super_contributions
+      summary: Get super-contributions by id
+      tags: [super]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: patch_super_contributions
+      summary: Patch super-contributions
+      tags: [super]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
   /v1/super-beneficiaries:
     get:
-      summary: List super beneficiaries
+      operationId: list_super_beneficiaries
+      summary: List super-beneficiaries
       tags: [super]
       responses:
         "200":
-          description: Beneficiary list
+          description: List
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ListResponse"
-
+    post:
+      operationId: create_super_beneficiaries
+      summary: Create super-beneficiaries
+      tags: [super]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainRecord"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "400":
+          $ref: "#/components/responses/Problem"
+  /v1/super-beneficiaries/{id}:
+    get:
+      operationId: get_super_beneficiaries
+      summary: Get super-beneficiaries by id
+      tags: [super]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: patch_super_beneficiaries
+      summary: Patch super-beneficiaries
+      tags: [super]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
   /v1/insurance-policies:
     get:
-      summary: List insurance policies
+      operationId: list_insurance_policies
+      summary: List insurance-policies
       tags: [insurance]
       responses:
         "200":
-          description: Policy list
+          description: List
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ListResponse"
-
+    post:
+      operationId: create_insurance_policies
+      summary: Create insurance-policies
+      tags: [insurance]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainRecord"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "400":
+          $ref: "#/components/responses/Problem"
+  /v1/insurance-policies/{id}:
+    get:
+      operationId: get_insurance_policies
+      summary: Get insurance-policies by id
+      tags: [insurance]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: patch_insurance_policies
+      summary: Patch insurance-policies
+      tags: [insurance]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
   /v1/insurance-coverages:
     get:
-      summary: List policy coverages
+      operationId: list_insurance_coverages
+      summary: List insurance-coverages
       tags: [insurance]
       responses:
         "200":
-          description: Coverage list
+          description: List
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ListResponse"
-
+    post:
+      operationId: create_insurance_coverages
+      summary: Create insurance-coverages
+      tags: [insurance]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainRecord"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "400":
+          $ref: "#/components/responses/Problem"
+  /v1/insurance-coverages/{id}:
+    get:
+      operationId: get_insurance_coverages
+      summary: Get insurance-coverages by id
+      tags: [insurance]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: patch_insurance_coverages
+      summary: Patch insurance-coverages
+      tags: [insurance]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
   /v1/insurance-renewals:
     get:
-      summary: List renewal schedule
+      operationId: list_insurance_renewals
+      summary: List insurance-renewals
       tags: [insurance]
       responses:
         "200":
-          description: Renewal list
+          description: List
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ListResponse"
-
+    post:
+      operationId: create_insurance_renewals
+      summary: Create insurance-renewals
+      tags: [insurance]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainRecord"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "400":
+          $ref: "#/components/responses/Problem"
+  /v1/insurance-renewals/{id}:
+    get:
+      operationId: get_insurance_renewals
+      summary: Get insurance-renewals by id
+      tags: [insurance]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: patch_insurance_renewals
+      summary: Patch insurance-renewals
+      tags: [insurance]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
   /v1/insurance-claims:
     get:
-      summary: List insurance claims
+      operationId: list_insurance_claims
+      summary: List insurance-claims
       tags: [insurance]
       responses:
         "200":
-          description: Claims list
+          description: List
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ListResponse"
-
+    post:
+      operationId: create_insurance_claims
+      summary: Create insurance-claims
+      tags: [insurance]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainRecord"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "400":
+          $ref: "#/components/responses/Problem"
+  /v1/insurance-claims/{id}:
+    get:
+      operationId: get_insurance_claims
+      summary: Get insurance-claims by id
+      tags: [insurance]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: patch_insurance_claims
+      summary: Patch insurance-claims
+      tags: [insurance]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
   /v1/tasks:
     get:
-      summary: List operational tasks
+      operationId: list_tasks
+      summary: List tasks
       tags: [workflows]
       responses:
         "200":
-          description: Tasks list
+          description: List
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ListResponse"
-
+    post:
+      operationId: create_tasks
+      summary: Create tasks
+      tags: [workflows]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainRecord"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "400":
+          $ref: "#/components/responses/Problem"
+  /v1/tasks/{id}:
+    get:
+      operationId: get_tasks
+      summary: Get tasks by id
+      tags: [workflows]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: patch_tasks
+      summary: Patch tasks
+      tags: [workflows]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
   /v1/communications:
     get:
-      summary: List communication events
+      operationId: list_communications
+      summary: List communications
       tags: [workflows]
       responses:
         "200":
-          description: Communications list
+          description: List
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ListResponse"
-
+    post:
+      operationId: create_communications
+      summary: Create communications
+      tags: [workflows]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainRecord"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "400":
+          $ref: "#/components/responses/Problem"
+  /v1/communications/{id}:
+    get:
+      operationId: get_communications
+      summary: Get communications by id
+      tags: [workflows]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: patch_communications
+      summary: Patch communications
+      tags: [workflows]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
   /v1/campaigns:
     get:
+      operationId: list_campaigns
       summary: List campaigns
       tags: [workflows]
       responses:
         "200":
-          description: Campaign list
+          description: List
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ListResponse"
-
+    post:
+      operationId: create_campaigns
+      summary: Create campaigns
+      tags: [workflows]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainRecord"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "400":
+          $ref: "#/components/responses/Problem"
+  /v1/campaigns/{id}:
+    get:
+      operationId: get_campaigns
+      summary: Get campaigns by id
+      tags: [workflows]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: patch_campaigns
+      summary: Patch campaigns
+      tags: [workflows]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
   /v1/anniversary-triggers:
     get:
-      summary: List anniversary triggers
+      operationId: list_anniversary_triggers
+      summary: List anniversary-triggers
       tags: [workflows]
       responses:
         "200":
-          description: Trigger list
+          description: List
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ListResponse"
-
+    post:
+      operationId: create_anniversary_triggers
+      summary: Create anniversary-triggers
+      tags: [workflows]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainRecord"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "400":
+          $ref: "#/components/responses/Problem"
+  /v1/anniversary-triggers/{id}:
+    get:
+      operationId: get_anniversary_triggers
+      summary: Get anniversary-triggers by id
+      tags: [workflows]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: patch_anniversary_triggers
+      summary: Patch anniversary-triggers
+      tags: [workflows]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
   /v1/tax-planning-checkpoints:
     get:
-      summary: List tax planning checkpoints
+      operationId: list_tax_planning_checkpoints
+      summary: List tax-planning-checkpoints
       tags: [workflows]
       responses:
         "200":
-          description: Checkpoint list
+          description: List
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ListResponse"
+    post:
+      operationId: create_tax_planning_checkpoints
+      summary: Create tax-planning-checkpoints
+      tags: [workflows]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainRecord"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "400":
+          $ref: "#/components/responses/Problem"
+  /v1/tax-planning-checkpoints/{id}:
+    get:
+      operationId: get_tax_planning_checkpoints
+      summary: Get tax-planning-checkpoints by id
+      tags: [workflows]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: patch_tax_planning_checkpoints
+      summary: Patch tax-planning-checkpoints
+      tags: [workflows]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
+  /v1/recommendations:
+    get:
+      operationId: list_recommendations
+      summary: List recommendations
+      tags: [workflows]
+      responses:
+        "200":
+          description: List
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+    post:
+      operationId: create_recommendations
+      summary: Create recommendations
+      tags: [workflows]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainRecord"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "400":
+          $ref: "#/components/responses/Problem"
+  /v1/recommendations/{id}:
+    get:
+      operationId: get_recommendations
+      summary: Get recommendations by id
+      tags: [workflows]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: patch_recommendations
+      summary: Patch recommendations
+      tags: [workflows]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainRecord"
+        "404":
+          $ref: "#/components/responses/Problem"
 
 components:
   parameters:
@@ -436,6 +1623,30 @@ components:
         primary_client_id:
           type: string
         household_name:
+          type: string
+    DomainRecord:
+      type: object
+      additionalProperties: true
+    DomainPatch:
+      type: object
+      additionalProperties: true
+    Address:
+      type: object
+      required: [client_id, line1, suburb, state, postcode]
+      properties:
+        id:
+          type: string
+        client_id:
+          type: string
+        line1:
+          type: string
+        suburb:
+          type: string
+        state:
+          type: string
+        postcode:
+          type: string
+        country:
           type: string
     ProblemDetails:
       type: object

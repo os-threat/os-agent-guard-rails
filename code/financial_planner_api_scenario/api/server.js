@@ -39,8 +39,13 @@ app.use((req, res, next) => {
 app.get("/", (_req, res) => {
   res.json({
     app: "financial-services-mini-app",
-    message: "API scaffold is running",
-    next: "Issue #22 will expand OpenAPI and endpoints.",
+    version: "0.2",
+    message: "Financial services v2 API (OpenAPI: openapi/financial-services.yaml).",
+    docs: {
+      health: "/admin/health",
+      integration_contract: "/admin/integration-contract",
+      openapi_file: "Bundled in repo at openapi/financial-services.yaml"
+    },
     env: config.env
   });
 });

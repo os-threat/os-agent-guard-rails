@@ -1,0 +1,4 @@
+extends: [["spectral:oas", "recommended"]]
+rules:
+  operation-success-response: warn
+  oas3-unused-component: off

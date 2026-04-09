@@ -188,3 +188,65 @@ h1, h2, h3 {
   overflow: auto;
   color: #bae6fd;
 }
+
+.timeline {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+  max-height: 420px;
+  overflow: auto;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.timeline li {
+  margin-bottom: 0.4rem;
+}
+
+.quick-actions {
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  margin-bottom: 0.75rem;
+  background: #0b1220;
+}
+
+.quick-actions h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+}
+
+.qa-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.qa-row label {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.qa-row input[type="text"] {
+  min-width: 12rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.35rem;
+  border: 1px solid var(--line);
+  background: #111827;
+  color: var(--text);
+}
+
+.qa-out {
+  margin: 0.5rem 0 0;
+  max-height: 160px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.submit-btn.secondary {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}

@@ -4,6 +4,7 @@ const express = require("express");
 const crypto = require("crypto");
 const { getDb } = require("../services/db");
 const { sendProblem } = require("../problem");
+const { attachGetPatch } = require("./crudId");
 
 const router = express.Router();
 
@@ -69,6 +70,8 @@ for (const resource of resources) {
       next(e);
     }
   });
+
+  attachGetPatch(router, basePath, collection);
 }
 
 module.exports = { productsRouter: router };
