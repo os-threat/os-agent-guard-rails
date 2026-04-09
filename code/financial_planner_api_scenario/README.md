@@ -1,18 +1,40 @@
-# Financial planner mini-app (OpenAPI + MongoDB)
+# Financial Services Mini-App (v2)
 
-Dummy REST API and iframe-friendly UI for OS-Agent Guard Rails demos. **Not** investment advice.
+This mini-app supports the financial services scenario with cross-product coverage:
 
-## Ports and URLs
+- investments
+- short-term savings
+- superannuation
+- insurance (general, household, death/life, business)
+- communication and outreach workflows
+- anniversaries and tax-planning checkpoints
 
-| Service | Default |
-|---------|---------|
-| Mock API + Swagger UI + mini-app | `http://localhost:8082` |
-| OpenAPI JSON | `http://localhost:8082/openapi.json` |
-| Swagger UI | `http://localhost:8082/docs` |
-| Health | `http://localhost:8082/health` |
-| MongoDB (host) | `localhost:27017` |
+## Runtime model
 
-## Run with Docker Desktop (Linux containers)
+- Development: Windows
+- Runtime: Docker Desktop (Linux containers)
+- UI embedding target: iframe (OpenClaw localhost integration)
+
+## Planned structure
+
+```text
+code/financial_planner_api_scenario/
+  openapi/
+  api/
+    src/
+      routes/
+      services/
+      rules/
+      ui/
+  db/
+    mongo-init/
+  seed/
+  tests/
+  web/
+    public/
+```
+
+## Startup (default)
 
 From this directory:
 
@@ -20,31 +42,50 @@ From this directory:
 docker compose up --build
 ```
 
-- **Windows:** Docker Desktop with WSL2 backend; maps **8082** and **27017** to the host.
-- **Named volume** `fp-mini-mongo-data` persists MongoDB data. To **re-seed** from scratch:  
-  `docker compose down -v` then `docker compose up --build` (or run `npm run seed` from `mock/` against a fresh DB).
+**Operator runbook (first run, reset, demos, troubleshooting):** see [`RUNBOOK.md`](RUNBOOK.md).
 
-`AUTO_SEED` defaults to `true` in Compose so the API loads demo data on startup.
+Web UI:
+- `http://localhost:8083/` (iframe-safe tabbed shell)
 
-## Local development (Windows)
+API:
+- `http://localhost:8082/`
+- `http://localhost:8082/admin/health`
+- `http://localhost:8082/admin/integration-contract`
 
-1. Install **Node.js 20+** and **MongoDB** (or run only Mongo in Docker: `docker compose up mongo`).
-2. `cd mock && npm install`  
-   On Windows, if install fails on a postinstall script, use `npm install` in the same shell where `node` is on `PATH`, or rely on the checked-in `mock/.npmrc` (`ignore-scripts=true`).
-3. Set `MONGODB_URI=mongodb://127.0.0.1:27017/financial_planner` (or your port).
-4. From repo root of this scenario: `node seed/generate_data.js`
-5. `npm start` (or `npm run dev`)
+## Configuration
 
-## Layout
+Copy `.env.example` to `.env` and override as needed.
 
-| Path | Role |
-|------|------|
-| `openapi/financial-planner.yaml` | OpenAPI 3.x contract |
-| `mock/` | Express server |
-| `seed/generate_data.js` | MongoDB seed (`C-ALLOW`, `C-DENY`, `C-NON-ACC`, …) |
-| `web/public/` | Static mini-app (served at `/`) |
-| `tests/` | Rules unit tests, E2E, Dredd hooks |
+| Variable | Default | Purpose |
+|---|---:|---|
+| `API_PORT` | `8082` | API host port |
+| `WEB_PORT` | `8083` | Web host port |
+| `MONGO_PORT` | `27017` | Mongo host port |
+| `MONGODB_URI` | `mongodb://mongo:27017/financial_services` | API-to-Mongo connection string |
 
-## API prefix
+## Reset
 
-All business routes are under **`/v1`**. See `plan/financial_planner_api_scenario/` for scenario docs.
+```bash
+docker compose down -v
+```
+
+## Smoke tests
+
+From `code/financial_planner_api_scenario/api`:
+
+```bash
+npm run test:api-smoke
+npm run test:ui-smoke
+```
+
+## Notes
+
+- Rules management and decision engine logic are implemented in the OS Agent RPA Guardrails plugin, not this mini-app repository.
+- This repository provides API/UI/data workflows and metadata hooks needed by the plugin.
+
+## Troubleshooting
+
+- If ports are in use, override `API_PORT`, `WEB_PORT`, or `MONGO_PORT` in `.env`.
+- If healthchecks fail right after startup, wait for first dependency install in the API container and run `docker compose ps` again.
+- To fully clean state: `docker compose down -v` then `docker compose up --build`.
+- **Extended troubleshooting, demo mapping, and pre-demo checklist:** [`RUNBOOK.md`](RUNBOOK.md).
