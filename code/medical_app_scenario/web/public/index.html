@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Medical Mini App</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Medical Mini App</h1>
+      <p>Scenario 1 demo UI for patients, trials, enrollments, prescriptions, adverse events, and reviews.</p>
+    </header>
+
+    <nav class="tabs">
+      <button data-tab="dashboard" class="tab active">Dashboard</button>
+      <button data-tab="patients" class="tab">Patients</button>
+      <button data-tab="trials" class="tab">Trials</button>
+      <button data-tab="enrollment-form" class="tab">Enrollment Form</button>
+      <button data-tab="prescription-form" class="tab">Prescription Form</button>
+      <button data-tab="adverse-event-form" class="tab">Adverse Event Form</button>
+      <button data-tab="review-form" class="tab">Enrollment Review</button>
+      <button data-tab="admin" class="tab">Admin</button>
+    </nav>
+
+    <main>
+      <section id="dashboard" class="panel active">
+        <h2>Dashboard</h2>
+        <div class="cards">
+          <article><h3>Active Trials</h3><p id="activeTrials">-</p></article>
+          <article><h3>Open AEs</h3><p id="openAes">-</p></article>
+          <article><h3>Pending Reviews</h3><p id="pendingReviews">-</p></article>
+        </div>
+
+        <div class="scenario-panel">
+          <h3>Investor demo quick-picks</h3>
+          <p class="hint">Fills forms for tasks M1–M6 (see <code>plan/medical_app_scenario/SCENARIO.md</code>). Opens the right tab; adjust medication if your seed differs.</p>
+          <div class="scenario-buttons">
+            <button type="button" class="scenario" data-scenario="M1">M1 ALLOW — Jordan Hayes, safe outpatient rx</button>
+            <button type="button" class="scenario" data-scenario="M2">M2 DENY — Riley Chen, β-lactam challenge</button>
+            <button type="button" class="scenario" data-scenario="M3">M3 TRIAL — Sam Okonkwo, trial context</button>
+            <button type="button" class="scenario" data-scenario="M4">M4 AE — Avery Morrison, open severe AE</button>
+            <button type="button" class="scenario" data-scenario="M5">M5 REVIEW — Nico Harper, pending review gate</button>
+            <button type="button" class="scenario" data-scenario="M6">M6 AE reporter — Lake Kim, enrollment-linked AE</button>
+          </div>
+          <p id="scenarioHint" class="hint" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section id="patients" class="panel">
+        <h2>Patients</h2>
+        <div class="row">
+          <input id="patientSearch" placeholder="Search name or patient id" />
+          <button id="patientSearchBtn">Search</button>
+        </div>
+        <div class="row split">
+          <div>
+            <h3>Patient List</h3>
+            <ul id="patientList"></ul>
+          </div>
+          <div>
+            <h3>Patient Detail</h3>
+            <pre id="patientDetail">Select a patient</pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="trials" class="panel">
+        <h2>Trials</h2>
+        <ul id="trialList"></ul>
+        <h3>Trial Detail</h3>
+        <pre id="trialDetail">Select a trial</pre>
+      </section>
+
+      <section id="enrollment-form" class="panel">
+        <h2>Create Enrollment</h2>
+        <form id="enrollmentForm">
+          <label>Patient<select id="enrollPatient"></select></label>
+          <label>Trial<select id="enrollTrial"></select></label>
+          <label>Site<select id="enrollSite"></select></label>
+          <label>Prescribers (multi-select)<select id="enrollPrescribers" multiple size="6"></select></label>
+          <label>Medications (multi-select)<select id="enrollMeds" multiple size="8"></select></label>
+          <button type="submit">Create Enrollment</button>
+        </form>
+        <pre id="enrollmentResult"></pre>
+      </section>
+
+      <section id="prescription-form" class="panel">
+        <h2>Create Prescription</h2>
+        <div id="rxTrialGuardBanner" class="banner" role="status"></div>
+        <form id="prescriptionForm">
+          <label>Patient<select id="rxPatient"></select></label>
+          <label>Prescriber<select id="rxPrescriber"></select></label>
+          <label>Site<select id="rxSite"></select></label>
+          <label>Medication<select id="rxMedication"></select></label>
+          <label class="checkbox">
+            <input type="checkbox" id="rxTrialRelated" />
+            Trial-related prescription (policy: MED-R06 enrollment review approved; MED-R12 prescriber on enrollment)
+          </label>
+          <label>Dose<input id="rxDose" value="10mg" /></label>
+          <label>Frequency<input id="rxFrequency" value="daily" /></label>
+          <button type="submit" id="rxSubmitBtn">Create Prescription</button>
+        </form>
+        <pre id="rxResult"></pre>
+      </section>
+
+      <section id="adverse-event-form" class="panel">
+        <h2>Create Adverse Event</h2>
+        <form id="aeForm">
+          <label>Patient<select id="aePatient"></select></label>
+          <label>Reporter<select id="aeReporter"></select></label>
+          <label>Event Type
+            <select id="aeType">
+              <option value="AE-N">Nausea</option>
+              <option value="AE-R">Rash</option>
+              <option value="AE-H">Headache</option>
+              <option value="AE-F">Fatigue</option>
+            </select>
+          </label>
+          <label>Severity (1-5)<input id="aeSeverity" type="number" min="1" max="5" value="3" /></label>
+          <label>Enrollment (optional)<select id="aeEnrollment"></select></label>
+          <button type="submit">Create Adverse Event</button>
+        </form>
+        <pre id="aeResult"></pre>
+      </section>
+
+      <section id="review-form" class="panel">
+        <h2>Enrollment Review</h2>
+        <form id="reviewForm">
+          <label>Enrollment<select id="reviewEnrollment"></select></label>
+          <label>Reviewer<select id="reviewer"></select></label>
+          <label>Status
+            <select id="reviewStatus">
+              <option value="pending">pending</option>
+              <option value="approved">approved</option>
+              <option value="rejected">rejected</option>
+            </select>
+          </label>
+          <button type="submit">Create Review</button>
+        </form>
+        <h3>Pending Reviews</h3>
+        <p class="hint">Approve or reject to clear MED-R06 gate for that enrollment. Uses latest pending row per listing.</p>
+        <ul id="pendingReviewList"></ul>
+        <pre id="reviewResult"></pre>
+      </section>
+
+      <section id="admin" class="panel">
+        <h2>Admin</h2>
+        <p>Development-only reseed resets data to deterministic fixtures.</p>
+        <button id="reseedBtn">Reseed Database</button>
+        <pre id="adminResult"></pre>
+      </section>
+    </main>
+
+    <script src="/ui.js"></script>
+  </body>
+</html>

@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: medical-mini-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-medical_mini_app}
+      POSTGRES_USER: ${POSTGRES_USER:-medical_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-medical_app_dev_pw}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - medical-mini-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-medical_app} -d ${POSTGRES_DB:-medical_mini_app}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: medical-mini-pgadmin
+    restart: unless-stopped
+    profiles: ["admin"]
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@example.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+    volumes:
+      - medical-mini-pgadmin-data:/var/lib/pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5051}:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  medical-mini-postgres-data:
+  medical-mini-pgadmin-data:

@@ -1,9 +1,9 @@
 # Medical scenario — Investor demo scripts
 
-**Audience:** Investor on a **local machine** (WSL + Docker): real browser, real TypeDB, synthetic data only.  
+**Audience:** Investor on a **local machine** (Docker Desktop; optional WSL): real browser, real TypeDB, synthetic data only. **Engineering** may develop on Windows against the same repo.  
 **Disclaimer (say aloud):** Fictional clinical data; not a regulated medical device.
 
-Maps **which rules (MED-Rxx)** and **which tasks (M1–M6)** from [`SCENARIO.md`](SCENARIO.md) to each demo length. Prep seeds: **`P-ALLOW`**, **`P-ALLERGY`**, **`P-TRIAL`**, **`P-AE`**, plus enrollment/review fixtures per **PLAN.md**.
+Maps **which rules (MED-Rxx)** and **which tasks (M1–M6)** from [`SCENARIO.md`](SCENARIO.md) to each demo length. Prep seeds: **named synthetic patients** from **PLAN.md §2.1** — **at least three** exemplars **per scenario** (e.g. **Jordan Hayes**, **Morgan Reed**, **Taylor Brooks** for ALLOW; **Riley Chen**, **Alex Rivera**, **Casey Nguyen** for allergy DENY; **Sam Okonkwo**, **Jamie Foster**, **Drew Patel** for trial concomitant; **Avery Morrison**, **Blake Okada**, **Dakota Flynn** for open severe AE), plus **M5** / **M6** names in that table and enrollment/review fixtures per **PLAN.md**.
 
 ---
 
@@ -31,9 +31,9 @@ Maps **which rules (MED-Rxx)** and **which tasks (M1–M6)** from [`SCENARIO.md`
 | Element | Use |
 |---------|-----|
 | **Rules** | **MED-R01** only. |
-| **Tasks** | **M2** only — patient **`P-ALLERGY`**, prescribe conflicting medication. |
+| **Tasks** | **M2** only — e.g. **Riley Chen** (alternates: **Alex Rivera**, **Casey Nguyen**), prescribe conflicting β-lactam / penicillin-class medication. |
 
-**Script:** Show allergy row in UI → run **M2** → **Guard MCP DENY** + rule name → **Promise** line → closing: shadow graph + MCP blocked unsafe action.
+**Script:** Show allergy row in UI for one named patient (optionally compare a second) → run **M2** → **Guard MCP DENY** + rule name → **Promise** line → closing: shadow graph + MCP blocked unsafe action.
 
 ---
 
@@ -44,7 +44,7 @@ Maps **which rules (MED-Rxx)** and **which tasks (M1–M6)** from [`SCENARIO.md`
 | Element | Use |
 |---------|-----|
 | **Rules** | **MED-R01**, **MED-R02** (contraindication can be mentioned in Logic viewer). |
-| **Tasks** | **M1** (`P-ALLOW`) then **M2** (`P-ALLERGY`). |
+| **Tasks** | **M1** (e.g. **Jordan Hayes**; alternates: **Morgan Reed**, **Taylor Brooks**) then **M2** (e.g. **Riley Chen**; alternates: **Alex Rivera**, **Casey Nguyen**). |
 
 | Min | Step |
 |-----|------|
@@ -52,7 +52,7 @@ Maps **which rules (MED-Rxx)** and **which tasks (M1–M6)** from [`SCENARIO.md`
 | 0:40 | **Register** Postgres → **TypeQL** schema (trial-enrollment pattern). |
 | 1:20 | **Rules:** composer for **MED-R01** (+ optional **MED-R02** snippet). |
 | 2:00 | **Task M1:** show **extract** (tables: patient, allergies, meds, ingredients); **run** → import → **ALLOW**. |
-| 3:15 | **Task M2:** same extract pattern for **`P-ALLERGY`** → **DENY** + witness. |
+| 3:15 | **Task M2:** same extract pattern for an allergy case (e.g. **Riley Chen**) → **DENY** + witness. |
 | 4:15 | Optional: **trial enrollment** UI with two prescribers + two meds (data story only, no extra tasks). |
 | 4:45 | **Promise** graph: session + task + assessment. |
 

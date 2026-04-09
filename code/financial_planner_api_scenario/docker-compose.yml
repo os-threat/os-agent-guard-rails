@@ -1,14 +1,12 @@
 services:
   mongo:
     image: mongo:7
-    container_name: fp-mini-mongo
+    container_name: financial-v2-mongo
     restart: unless-stopped
-    environment:
-      MONGO_INITDB_DATABASE: ${MONGO_DB:-financial_planner}
     ports:
       - "${MONGO_PORT:-27017}:27017"
     volumes:
-      - fp-mini-mongo-data:/data/db
+      - financial-v2-mongo-data:/data/db
     healthcheck:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -17,21 +15,45 @@ services:
       start_period: 15s
 
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: fp-mini-api
+    image: node:20-alpine
+    container_name: financial-v2-api
     restart: unless-stopped
+    working_dir: /app/api
+    command: sh -c "npm install && npm run start"
     environment:
-      NODE_ENV: production
-      PORT: "8082"
-      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/financial_planner}
-      AUTO_SEED: ${AUTO_SEED:-true}
+      API_PORT: "${API_PORT:-8082}"
+      MONGODB_URI: "${MONGODB_URI:-mongodb://mongo:27017/financial_services}"
+    volumes:
+      - ./api:/app/api
     ports:
       - "${API_PORT:-8082}:8082"
     depends_on:
       mongo:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:8082/admin/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  web:
+    image: nginx:1.27-alpine
+    container_name: financial-v2-web
+    restart: unless-stopped
+    volumes:
+      - ./web/public:/usr/share/nginx/html:ro
+    ports:
+      - "${WEB_PORT:-8083}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
 volumes:
-  fp-mini-mongo-data:
+  financial-v2-mongo-data:

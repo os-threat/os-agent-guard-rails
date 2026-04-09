@@ -1,7 +1,7 @@
 # Medical scenario — Using OS-Agent RPA Guard Rails (end-user story)
 
 **Companion:** [`PLAN.md`](PLAN.md) (mini-app build), [`DEMO.md`](DEMO.md) (investor timing).  
-**Prereqs:** Mini-app running (**WSL + Docker**), plugin **Stage 2**, TypeDB for shadow + promise graph.
+**Prereqs:** Mini-app running (**Docker Desktop**; optional **WSL** for shell convenience), plugin **Stage 2**, TypeDB for shadow + promise graph. Code for the mini-app is developed on **Windows** in this repo; DB/UI run in containers per **PLAN.md**.
 
 This document is the **manual script** for overview **Deliverables / Stage 2** §4–5. You add the **exact rules** and **exact tasks** below in the plugin UI.
 
@@ -19,7 +19,7 @@ This document is the **manual script** for overview **Deliverables / Stage 2** �
 
 ## 1. Connect to the dummy database (schema only)
 
-1. Start stack: `docker compose up` in `code/medical_app_scenario` (when implemented).  
+1. Start stack: `docker compose up` in `code/medical_app_scenario` (when implemented) from **Windows**, WSL, or any shell with Docker context pointed at **Docker Desktop**.  
 2. **OS-Agent Guard Rails** → **Register** → **SQL / Postgres**.  
 3. Connection string, database name, credentials (localhost port per **PLAN.md**, e.g. **5433**).  
 4. **Background:** plugin reads SQL **DDL** convert to TypeQL schema→ **TypeQL `define`** for Layer A (**schema only**).  
@@ -58,40 +58,40 @@ For each task: **Tasks** → **New task** — name, parameters, agent profile, b
 
 ### Task M1 — “Outpatient prescription — ALLOW (safe patient)”
 
-- **Goal:** **ALLOW** for patient **`P-ALLOW`** (seed): no allergy conflict, no blocking AE.  
-- **Parameters:** `patient_mrn`, `medication_id`, prescriber license, site.  
+- **Goal:** **ALLOW** for a **safe outpatient** seed patient: no allergy conflict, no blocking open severe AE. **Primary demo name:** **Jordan Hayes**; **alternates** (also seeded, same role): **Morgan Reed**, **Taylor Brooks**. See **PLAN.md §2.1**.  
+- **Parameters:** `patient_mrn` (or name lookup), `medication_id`, prescriber license, site.  
 - **Extract:** `patients` + `patient_allergies` + `patient_conditions` + `medications` + `medication_ingredients` + open `prescriptions` for interaction checks; **MED-R01, R02, R05, R11** inputs.  
 - **Guard hooks:** MED-R01–R03, R05, R11 as applicable.  
 - **Promise:** session + shared-task + pre/post promises.
 
 ### Task M2 — “Outpatient prescription — DENY (allergy conflict)”
 
-- **Goal:** **DENY** for **`P-ALLERGY`** vs penicillin-class drug (seed).  
+- **Goal:** **DENY** for **verified allergy vs proposed β-lactam / penicillin-class** therapy. **Primary demo name:** **Riley Chen**; **alternates:** **Alex Rivera**, **Casey Nguyen**.  
 - **Extract:** same slice as M1 for that patient + proposed med ingredients.  
 - **Guard hooks:** **MED-R01** (primary).  
 - **Expected:** DENY + witness (ingredient ids).
 
 ### Task M3 — “Trial enrollment medication — concomitant violation”
 
-- **Goal:** **DENY** for **`P-TRIAL`** when proposed med not on allowed list — **MED-R03**, **MED-R07**.  
+- **Goal:** **DENY** when proposed med **not on trial allowed list** / concomitant rules — **MED-R03**, **MED-R07**. **Primary demo name:** **Sam Okonkwo**; **alternates:** **Jamie Foster**, **Drew Patel**.  
 - **Extract:** `trial_enrollments`, junctions `trial_enrollment_prescribers`, `trial_enrollment_medications`, `trials`, `medications`.  
 - **Guard hooks:** MED-R03, R06, R07, R12.
 
 ### Task M4 — “New rx blocked by open severe AE”
 
-- **Goal:** **MED-R04** for **`P-AE`** with open severe AE.  
+- **Goal:** **MED-R04** with **open severe AE** (severity ≥ policy threshold). **Primary demo name:** **Avery Morrison**; **alternates:** **Blake Okada**, **Dakota Flynn**.  
 - **Extract:** `adverse_events` + enrollment link + patient.  
 - **Guard hooks:** MED-R04.
 
 ### Task M5 — “Enrollment review gate”
 
-- **Goal:** **MED-R06** — trial-related action while review **pending**.  
+- **Goal:** **MED-R06** — trial-related action while enrollment review **pending** (not approved). **Primary demo names:** **Nico Harper**; **alternates:** **Remy Santos**, **Sage Lombardi**.  
 - **Extract:** `trial_enrollment_reviews` + enrollment + patient.  
 - **Guard hooks:** MED-R06 (and R08 for a second run if AE filed).
 
 ### Task M6 — “Hypergraph AE consistency (reporter vs prescribers)”
 
-- **Goal:** **MED-R08** — AE linked to enrollment but reporter not on prescriber junction (seed failure case).  
+- **Goal:** **MED-R08** — AE linked to enrollment but **reporting** prescriber **not** on `trial_enrollment_prescribers`. **Primary demo name:** **Lake Kim**; **alternates:** **Rowan Gupta**, **Skyler Adams**.  
 - **Extract:** `adverse_events` + enrollment junctions.  
 - **Guard hooks:** MED-R08.
 
@@ -130,4 +130,4 @@ When you **run** a task (or dry-run):
 
 ## 7. Artifacts for investor
 
-- Dashboard screenshot; **one DENY** trace (**M2** or **M3**); **one ALLOW** (**M1**); promise assessment line.
+- Dashboard screenshot; **one DENY** trace (**M2** e.g. Riley Chen, or **M3** e.g. Sam Okonkwo); **one ALLOW** (**M1** e.g. Jordan Hayes); optional second DENY on an **alternate** seeded patient in the same category to show repeatability; promise assessment line.

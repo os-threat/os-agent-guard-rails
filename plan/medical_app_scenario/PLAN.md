@@ -4,7 +4,7 @@
 
 **Richness target:** [Complete Medical Trial Example](https://github.com/Volland/typedb-for-edge-ai-agents/blob/main/manuscript/13-hypergraphs.md#complete-medical-trial-example) — **`trial-enrollment`** as n-ary hyperedge (patient, trial, **multiple** prescribers, **multiple** medications, site), **`adverse-event`**, optional **`trial-enrollment-review`** (relation-on-relation), contraindications, allergies, outpatient **prescriptions**.
 
-**Environment:** **WSL 2** + **Docker Desktop** on Windows; all services bind **localhost** for OpenClaw iframe embedding.
+**Development:** Code and develop the mini-app in this repo on **Windows** (Cursor, git, Node/Python as needed). **Runtime:** **Docker Desktop** (and optionally **WSL 2** for compose shells); all services bind **localhost** for OpenClaw iframe embedding.
 
 ---
 
@@ -53,6 +53,21 @@ plan/medical_app_scenario/
 | `prescriptions` (non-trial) | ~200–400 | main volume driver |
 
 **Total:** **roughly 300–800+** rows across tables — tune generator so **≥400** inserted lines in `data.sql` is acceptable for demos.
+
+### 2.1 Demo fixture patients (synthetic names, multiple per condition)
+
+Seeds must use **realistic first + last names** (not codes like `P-ALLOW`). Each **demo condition** below needs **at least three** distinct patients so investors see repeatability, not a one-off row.
+
+| Demo focus | Role | Example patients (≥3 each in seed) |
+|------------|------|--------------------------------------|
+| **M1** — outpatient **ALLOW** | No allergy clash, no blocking open severe AE | Jordan Hayes, Morgan Reed, Taylor Brooks |
+| **M2** — **DENY** (verified allergy vs proposed med ingredients) | Verified β-lactam / penicillin-class conflict exemplars | Riley Chen, Alex Rivera, Casey Nguyen |
+| **M3** — trial **concomitant / allowed-list** DENY | Enrolled; proposed med off trial allowed list | Sam Okonkwo, Jamie Foster, Drew Patel |
+| **M4** — open **severe AE** blocks new rx | Open severity ≥ policy threshold (e.g. G3+) | Avery Morrison, Blake Okada, Dakota Flynn |
+| **M5** — **enrollment review** not approved | Trial-related action while review pending | Nico Harper, Remy Santos, Sage Lombardi |
+| **M6** — **AE reporter** not on enrollment prescriber junction | AE linked to enrollment; reporter ∉ `trial_enrollment_prescribers` | Lake Kim, Rowan Gupta, Skyler Adams |
+
+Overlap is fine (e.g. a patient can appear in both M3 and M5 narratives) as long as **every** row remains **synthetic** and the **≥3 exemplars per scenario** rule is satisfied. Document primary vs alternate picks for each task in [`SCENARIO.md`](SCENARIO.md) / [`DEMO.md`](DEMO.md).
 
 ---
 
@@ -118,20 +133,21 @@ plan/medical_app_scenario/
 - **Services:** `postgres:16` (or 15), optional `pgadmin`.  
 - **Volumes:** persist DB for iterative demos.  
 - **Healthcheck:** `pg_isready`.  
-- **One command:** `docker compose up -d` from WSL.
+- **One command:** `docker compose up -d` from the repo (PowerShell, cmd, or WSL path to the same directory).
 
 ---
 
 ## 6. Seed generation
 
 - **Python** or **SQL** script: deterministic demo data set for reproducible investor demos.  
-- **Edge cases baked in:** allergy conflict, trial concomitant violation, pediatric + warning drug, AE Query-4 pattern (prescriber = reporter), duplicate therapy, unverified allergy only.
+- **Edge cases baked in:** allergy conflict, trial concomitant violation, pediatric + warning drug, AE pattern where reporter aligns with enrollment prescriber (clean case) **and** mismatch cases for **M6**, duplicate therapy, unverified allergy only.  
+- **Fixture depth:** For **each** row in §2.1, include **at least three** patients in that category (distinct names/rows), not a single exemplar. Include mixed ages/sites and a few **negative controls** (patients who do **not** trigger a given guard) where useful for UI search demos.
 
 ---
 
 ## 7. Testing (mini-app)
 
-- `psql` assertions: FKs, row counts, specific fixture IDs.  
+- `psql` assertions: FKs, row counts, **≥3 seed rows per §2.1 category**, and spot checks by **patient name** / business key (e.g. Riley Chen present with expected allergy edges).  
 - API smoke: CRUD on enrollment creates correct junction rows.  
 - Optional: Playwright — open patient, submit prescription form.
 

@@ -1,0 +1,460 @@
+openapi: 3.0.3
+info:
+  title: Financial Services Mini App API
+  version: 0.2.0
+  description: >
+    OpenAPI contract for the financial services v2 mini-app. This API models clients,
+    households, investments, savings, superannuation, insurance, communications, campaigns,
+    tasks, anniversaries, tax checkpoints, and admin/dashboard operations.
+servers:
+  - url: http://localhost:8082
+tags:
+  - name: clients
+  - name: households
+  - name: profiles
+  - name: dates
+  - name: investments
+  - name: savings
+  - name: super
+  - name: insurance
+  - name: workflows
+  - name: admin
+  - name: dashboard
+paths:
+  /admin/health:
+    get:
+      summary: Health check
+      tags: [admin]
+      responses:
+        "200":
+          description: Service health
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /admin/jobs:
+    get:
+      summary: List admin jobs
+      tags: [admin]
+      responses:
+        "200":
+          description: Job list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+
+  /admin/audit:
+    get:
+      summary: List audit records
+      tags: [admin]
+      responses:
+        "200":
+          description: Audit list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+
+  /dashboard/metrics:
+    get:
+      summary: Dashboard metrics
+      tags: [dashboard]
+      responses:
+        "200":
+          description: Metrics payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetricsResponse"
+
+  /v1/clients:
+    get:
+      summary: List clients
+      tags: [clients]
+      responses:
+        "200":
+          description: Client list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+    post:
+      summary: Create client
+      tags: [clients]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Client"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+        "400":
+          $ref: "#/components/responses/Problem"
+
+  /v1/clients/{id}:
+    get:
+      summary: Get client
+      tags: [clients]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Client detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+        "404":
+          $ref: "#/components/responses/Problem"
+    patch:
+      summary: Update client
+      tags: [clients]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+
+  /v1/households:
+    get:
+      summary: List households
+      tags: [households]
+      responses:
+        "200":
+          description: Household list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+    post:
+      summary: Create household
+      tags: [households]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Household"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Household"
+
+  /v1/profiles:
+    get:
+      summary: List advisory profiles
+      tags: [profiles]
+      responses:
+        "200":
+          description: Profile list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+
+  /v1/important-dates:
+    get:
+      summary: List important dates
+      tags: [dates]
+      responses:
+        "200":
+          description: Date list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+
+  /v1/investment-accounts:
+    get:
+      summary: List investment accounts
+      tags: [investments]
+      responses:
+        "200":
+          description: Investment account list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+
+  /v1/investment-holdings:
+    get:
+      summary: List investment holdings
+      tags: [investments]
+      responses:
+        "200":
+          description: Holding list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+
+  /v1/savings-accounts:
+    get:
+      summary: List savings accounts
+      tags: [savings]
+      responses:
+        "200":
+          description: Savings list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+
+  /v1/super-accounts:
+    get:
+      summary: List super accounts
+      tags: [super]
+      responses:
+        "200":
+          description: Super account list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+
+  /v1/super-contributions:
+    get:
+      summary: List super contributions
+      tags: [super]
+      responses:
+        "200":
+          description: Contribution list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+
+  /v1/super-beneficiaries:
+    get:
+      summary: List super beneficiaries
+      tags: [super]
+      responses:
+        "200":
+          description: Beneficiary list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+
+  /v1/insurance-policies:
+    get:
+      summary: List insurance policies
+      tags: [insurance]
+      responses:
+        "200":
+          description: Policy list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+
+  /v1/insurance-coverages:
+    get:
+      summary: List policy coverages
+      tags: [insurance]
+      responses:
+        "200":
+          description: Coverage list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+
+  /v1/insurance-renewals:
+    get:
+      summary: List renewal schedule
+      tags: [insurance]
+      responses:
+        "200":
+          description: Renewal list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+
+  /v1/insurance-claims:
+    get:
+      summary: List insurance claims
+      tags: [insurance]
+      responses:
+        "200":
+          description: Claims list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+
+  /v1/tasks:
+    get:
+      summary: List operational tasks
+      tags: [workflows]
+      responses:
+        "200":
+          description: Tasks list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+
+  /v1/communications:
+    get:
+      summary: List communication events
+      tags: [workflows]
+      responses:
+        "200":
+          description: Communications list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+
+  /v1/campaigns:
+    get:
+      summary: List campaigns
+      tags: [workflows]
+      responses:
+        "200":
+          description: Campaign list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+
+  /v1/anniversary-triggers:
+    get:
+      summary: List anniversary triggers
+      tags: [workflows]
+      responses:
+        "200":
+          description: Trigger list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+
+  /v1/tax-planning-checkpoints:
+    get:
+      summary: List tax planning checkpoints
+      tags: [workflows]
+      responses:
+        "200":
+          description: Checkpoint list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+
+components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        service:
+          type: string
+    MetricsResponse:
+      type: object
+      properties:
+        active_clients:
+          type: integer
+        upcoming_anniversaries:
+          type: integer
+        pending_tasks:
+          type: integer
+    ListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        total:
+          type: integer
+    Client:
+      type: object
+      required: [first_name, last_name, date_of_birth]
+      properties:
+        id:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        date_of_birth:
+          type: string
+          format: date
+        address:
+          type: string
+        communication_preference:
+          type: string
+    ClientPatch:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        address:
+          type: string
+        communication_preference:
+          type: string
+    Household:
+      type: object
+      properties:
+        id:
+          type: string
+        primary_client_id:
+          type: string
+        household_name:
+          type: string
+    ProblemDetails:
+      type: object
+      required: [title, status, trace_id]
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        trace_id:
+          type: string
+  responses:
+    Problem:
+      description: Problem details response
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
