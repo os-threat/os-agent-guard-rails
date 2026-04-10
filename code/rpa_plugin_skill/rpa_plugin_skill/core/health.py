@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .config import AppConfig
-from .typedb_bootstrap import connect
+from .typedb_bootstrap import connect_with_retry
 
 
 @dataclass(frozen=True)
@@ -16,7 +16,7 @@ class HealthProbeResult:
 
 def probe_typedb(config: AppConfig) -> HealthProbeResult:
     try:
-        driver = connect(config)
+        driver = connect_with_retry(config)
     except Exception as exc:  # noqa: BLE001
         return HealthProbeResult(
             ok=False,
@@ -35,3 +35,4 @@ def probe_typedb(config: AppConfig) -> HealthProbeResult:
         )
     finally:
         driver.close()
+

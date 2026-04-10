@@ -15,6 +15,8 @@ class AppConfig:
     layer_c_db: str
     layer_b_db: str
     layer_a_test_db: str
+    layer_a_prefix: str
+    max_database_name_length: int
 
     @classmethod
     def from_env(cls) -> "AppConfig":
@@ -31,6 +33,8 @@ class AppConfig:
             layer_c_db=os.environ.get("LAYER_C_DB", "guardrails_layer_c"),
             layer_b_db=os.environ.get("LAYER_B_DB", "guardrails_layer_b"),
             layer_a_test_db=os.environ.get("LAYER_A_TEST_DB", "guardrails_layer_a_test"),
+            layer_a_prefix=os.environ.get("LAYER_A_PREFIX", "guardrails_layer_a_"),
+            max_database_name_length=int(os.environ.get("MAX_DATABASE_NAME_LENGTH", "64")),
         )
 
     def database_names(self) -> list[str]:

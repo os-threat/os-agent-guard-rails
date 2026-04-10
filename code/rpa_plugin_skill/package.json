@@ -6,6 +6,9 @@
     "dev": "python -m rpa_plugin_skill --bootstrap",
     "start": "python -m rpa_plugin_skill",
     "health": "python -m rpa_plugin_skill --health",
+    "db:list": "python -m rpa_plugin_skill --list-databases",
+    "db:register:example": "python -m rpa_plugin_skill --register-source example-source",
+    "db:archive:example": "python -m rpa_plugin_skill --archive-source example-source",
     "test": "python -m unittest discover -s tests -p \"test_*.py\"",
     "lint": "python -m ruff check rpa_plugin_skill tests",
     "format": "python -m ruff format rpa_plugin_skill tests"

@@ -2,9 +2,9 @@
 
 Implementation will live here per [`a_seed/os-agent-guard-rails-overview.md`](../../a_seed/os-agent-guard-rails-overview.md). The canonical implementation plan is [`plan/rpa_guidelines_plan/PLAN.md`](../../plan/rpa_guidelines_plan/PLAN.md).
 
-## Package skeleton (issues #41, #42)
+## Package skeleton (issues #41–#43)
 
-This folder now contains a minimal Python package that can start with environment config, probe TypeDB health, and bootstrap named databases on a single TypeDB instance.
+This folder contains a minimal Python package that can start with environment config, probe TypeDB health, and manage deterministic Layer A database names for source registrations.
 
 ### Package layout
 
@@ -12,7 +12,7 @@ This folder now contains a minimal Python package that can start with environmen
 code/rpa_plugin_skill/
   .env.example
   .gitignore
-  package.json                # npm-style scripts for dev/health/test/lint/format
+  package.json                # npm-style scripts for dev/health/db/test/lint/format
   pyproject.toml              # Ruff baseline
   requirements.txt            # typedb-driver + ruff
   rpa_plugin_skill/
@@ -20,13 +20,15 @@ code/rpa_plugin_skill/
     cli/main.py
     core/config.py
     core/health.py
+    core/database_lifecycle.py
     core/typedb_bootstrap.py
   tests/test_config.py
+  tests/test_database_lifecycle.py
   dev/docker-compose.yml
   typeql_ci/
 ```
 
-## Local development — TypeDB (single instance)
+## Single TypeDB instance model
 
 The plugin uses **one TypeDB server instance** (one host/port). On that instance you create **multiple named databases**:
 
@@ -38,12 +40,29 @@ The plugin uses **one TypeDB server instance** (one host/port). On that instance
 
 Normative **TypeQL** for TypeDB **3.8+** is in [`skills/typedb/SKILL.md`](../../skills/typedb/SKILL.md) (transaction types, `define` / `redefine`, semicolon-terminated queries, entity/relation/attribute roots, `@key`, etc.).
 
-### Prerequisites
+## Deterministic Layer A naming and lifecycle
+
+Registration id -> Layer A database mapping is deterministic:
+
+- Sanitize id to safe chars (`a-z`, `0-9`, `_`, `-`) and collapse separators
+- Append an 8-char SHA1 suffix for collision resistance
+- Enforce `MAX_DATABASE_NAME_LENGTH` (default `64`) with safe trimming
+
+Example shape: `guardrails_layer_a_{sanitized}_{hash8}`
+
+### Lifecycle operations (v1)
+
+- **Bootstrap core:** create Layer C and Layer B once
+- **Register source:** create/get mapped Layer A DB for source id
+- **List:** list databases on configured instance
+- **Archive source:** in v1, archive is implemented as delete of the mapped Layer A DB
+
+## Prerequisites
 
 - **Docker Desktop** on Windows (Linux containers), or Docker Engine on Linux/macOS  
 - Optional: **WSL 2** on Windows if you prefer a Linux shell for `docker compose` and scripts; Docker Desktop integrates with WSL2
 
-### Start TypeDB
+## Start TypeDB
 
 From this package’s `dev` folder:
 
@@ -53,40 +72,26 @@ docker compose up -d
 docker compose ps
 ```
 
-- **Driver gRPC** (default for clients): `localhost:1729` — set e.g. `TYPEDB_ADDRESS=localhost:1729` in plugin config.  
+- **Driver gRPC**: `localhost:1729` (set `TYPEDB_ADDRESS` accordingly)
 - Port **8000** is also exposed by the official image (see [TypeDB CE install — Docker](https://typedb.com/docs/home/install/ce/)).
 
-### Health check
-
-With the container running:
-
-```bash
-docker compose logs typedb --tail 20
-```
-
-And from `code/rpa_plugin_skill`:
-
-```bash
-pip install -r requirements.txt
-npm run health
-```
-
-### Skeleton scripts (`package.json`)
+## Scripts (`package.json`)
 
 From `code/rpa_plugin_skill`:
 
 ```bash
 pip install -r requirements.txt
-npm run dev      # python -m rpa_plugin_skill --bootstrap
-npm run health   # python -m rpa_plugin_skill --health
-npm run test     # unittest
-npm run lint     # ruff check
-npm run format   # ruff format
+npm run dev                 # bootstrap Layer C/B
+npm run health              # TypeDB health probe
+npm run db:list             # list DBs
+npm run db:register:example # create/get Layer A DB mapping
+npm run db:archive:example  # archive/delete mapped Layer A DB
+npm run test                # unittest
+npm run lint                # ruff check
+npm run format              # ruff format
 ```
 
-`npm run dev` reads env vars and can create missing named DBs (`Layer C`, `Layer B`, `Layer A test`) on the configured TypeDB instance.
-
-### Connection settings (`.env.example`)
+## Connection settings (`.env.example`)
 
 - `TYPEDB_ADDRESS` (default `127.0.0.1:1729`)
 - `TYPEDB_USER` (default `admin`)
@@ -94,13 +99,15 @@ npm run format   # ruff format
 - `TYPEDB_TLS_ENABLED` (default `false`)
 - `TYPEDB_CONNECT_RETRIES` (default `5`)
 - `TYPEDB_CONNECT_RETRY_DELAY_SEC` (default `1.0`)
+- `LAYER_A_PREFIX` (default `guardrails_layer_a_`)
+- `MAX_DATABASE_NAME_LENGTH` (default `64`)
 
-### Stop / reset
+## Limits and constraints (v1)
 
-```bash
-docker compose down
-docker compose down -v
-```
+- **Single instance target only** for this phase (`TYPEDB_ADDRESS`)
+- **Name charset** enforced by sanitizer for registration ids
+- **Collision handling** uses deterministic hash suffix
+- **Max database length** enforced by trimming + hash preservation
 
 ## TypeQL CI (local and GitHub Actions)
 
@@ -117,8 +124,6 @@ pip install -r requirements.txt
 python validate_typeql.py
 ```
 
-Environment variables (optional): `TYPEDB_ADDRESS`, `TYPEDB_USER`, `TYPEDB_PASSWORD`.
-
 **CI:** workflow [`.github/workflows/typeql-ci.yml`](../../.github/workflows/typeql-ci.yml) runs the same script against `typedb/typedb:3.8.3`.
 
 ## GitHub tracking
@@ -128,4 +133,6 @@ Environment variables (optional): `TYPEDB_ADDRESS`, `TYPEDB_USER`, `TYPEDB_PASSW
 | **0.1** Local dev stack | [#39](https://github.com/os-threat/os-agent-guard-rails/issues/39) (closed) |
 | **0.2** CI TypeQL validation | [#40](https://github.com/os-threat/os-agent-guard-rails/issues/40) (closed) |
 | **0.3** package skeleton | [#41](https://github.com/os-threat/os-agent-guard-rails/issues/41) (closed) |
-| **1.1** TypeDB connection configuration | [#42](https://github.com/os-threat/os-agent-guard-rails/issues/42) |
+| **1.1** TypeDB connection configuration | [#42](https://github.com/os-threat/os-agent-guard-rails/issues/42) (closed) |
+| **1.2** logical database lifecycle | [#43](https://github.com/os-threat/os-agent-guard-rails/issues/43) |
+
