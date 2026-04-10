@@ -1,0 +1,12 @@
+{
+  "name": "rpa-plugin-skill",
+  "private": true,
+  "description": "OS-Agent RPA Guard Rails plugin/skill skeleton",
+  "scripts": {
+    "dev": "python -m rpa_plugin_skill --bootstrap",
+    "start": "python -m rpa_plugin_skill",
+    "test": "python -m unittest discover -s tests -p \"test_*.py\"",
+    "lint": "python -m ruff check rpa_plugin_skill tests",
+    "format": "python -m ruff format rpa_plugin_skill tests"
+  }
+}

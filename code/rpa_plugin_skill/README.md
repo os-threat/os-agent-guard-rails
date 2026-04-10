@@ -2,6 +2,28 @@
 
 Implementation will live here per [`a_seed/os-agent-guard-rails-overview.md`](../../a_seed/os-agent-guard-rails-overview.md). The canonical implementation plan is [`plan/rpa_guidelines_plan/PLAN.md`](../../plan/rpa_guidelines_plan/PLAN.md).
 
+## Package skeleton (issue #41)
+
+This folder now contains a minimal Python package that can start with config from environment and optionally bootstrap named TypeDB databases.
+
+### Package layout
+
+```text
+code/rpa_plugin_skill/
+  .env.example
+  package.json                # npm-style scripts for dev/test/lint/format
+  pyproject.toml              # ruff baseline
+  requirements.txt            # typedb-driver + ruff
+  rpa_plugin_skill/
+    __main__.py
+    cli/main.py
+    core/config.py
+    core/typedb_bootstrap.py
+  tests/test_config.py
+  dev/docker-compose.yml
+  typeql_ci/
+```
+
 ## Local development — TypeDB (single instance)
 
 The plugin uses **one TypeDB server instance** (one host/port). On that instance you create **multiple named databases**:
@@ -29,7 +51,7 @@ docker compose up -d
 docker compose ps
 ```
 
-- **Driver gRPC** (default for clients): `localhost:1729` — set e.g. `TYPEDB_ADDRESS=localhost:1729` in plugin config when implemented.  
+- **Driver gRPC** (default for clients): `localhost:1729` — set e.g. `TYPEDB_ADDRESS=localhost:1729` in plugin config.  
 - Port **8000** is also exposed by the official image (see [TypeDB CE install — Docker](https://typedb.com/docs/home/install/ce/)).
 
 ### Health check
@@ -40,23 +62,26 @@ With the container running:
 docker compose logs typedb --tail 20
 ```
 
-You should see the server listening; use your TypeDB client or Studio to open `localhost:1729` when you add connectivity tests.
+### Skeleton scripts (`package.json`)
+
+From `code/rpa_plugin_skill`:
+
+```bash
+pip install -r requirements.txt
+npm run dev      # python -m rpa_plugin_skill --bootstrap
+npm run test     # unittest
+npm run lint     # ruff check
+npm run format   # ruff format
+```
+
+`npm run dev` reads env vars and can create missing named DBs (`Layer C`, `Layer B`, `Layer A test`) on the configured TypeDB instance.
 
 ### Stop / reset
 
 ```bash
 docker compose down
-```
-
-To remove persisted data as well:
-
-```bash
 docker compose down -v
 ```
-
-### Integration testing (later)
-
-Full-stack integration tests are planned to use this (or CI) compose plus optional Postgres/API fixtures; see [`plan/rpa_guidelines_plan/PLAN.md`](../../plan/rpa_guidelines_plan/PLAN.md) §6 (testing approach).
 
 ## TypeQL CI (local and GitHub Actions)
 
@@ -82,4 +107,5 @@ Environment variables (optional): `TYPEDB_ADDRESS` (default `127.0.0.1:1729`), `
 | Epic | Issue |
 |------|--------|
 | **0.1** Local dev stack | [#39](https://github.com/os-threat/os-agent-guard-rails/issues/39) (closed) |
-| **0.2** CI TypeQL validation | [#40](https://github.com/os-threat/os-agent-guard-rails/issues/40) |
+| **0.2** CI TypeQL validation | [#40](https://github.com/os-threat/os-agent-guard-rails/issues/40) (closed) |
+| **0.3** package skeleton | [#41](https://github.com/os-threat/os-agent-guard-rails/issues/41) |
