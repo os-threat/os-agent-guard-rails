@@ -15,6 +15,7 @@ Guard rails for OpenClaw RPA: business rules on a **shadow TypeDB** model (SQL o
 | [code/financial_planner_api_scenario/README.md](code/financial_planner_api_scenario/README.md) | **Financial planner mini-app** — Docker (MongoDB + API), OpenAPI, seed data, iframe UI, tests |
 | [agent_book/](agent_book/) | Source notes on databases, TypeQL guardrails, PERA, MCP |
 | [skills/typedb/SKILL.md](skills/typedb/SKILL.md) | TypeQL 3.8+ patterns for schema and transactions |
+| [code/rpa_plugin_skill/README.md](code/rpa_plugin_skill/README.md) | **RPA plugin/skill** — local TypeDB dev stack (`dev/docker-compose.yml`), Layer C/B/A database model |
 
 ## External references
 
@@ -27,6 +28,6 @@ Guard rails for OpenClaw RPA: business rules on a **shadow TypeDB** model (SQL o
 |----------|--------|
 | [code/medical_app_scenario/](code/medical_app_scenario/) | **Implemented:** Docker Postgres, schema/views, seed generator, Express API + web UI, DB/API/Playwright tests. See [code/medical_app_scenario/README.md](code/medical_app_scenario/README.md) for how to run and test. |
 | [code/financial_planner_api_scenario/](code/financial_planner_api_scenario/) | **Implemented:** Docker Compose (MongoDB + Node mock), full OpenAPI spec, `/docs`, seed (`C-ALLOW` / `C-DENY` / `C-NON-ACC`), guard rules FP-R01–FP12 on recommendations/trades, static mini-app, unit + E2E + smoke tests. |
-| `code/rpa_plugin_skill` | Planned (see overview). |
+| [code/rpa_plugin_skill/](code/rpa_plugin_skill/) | **In progress:** TypeDB **3.8.3** dev compose + README ([issue #39](https://github.com/os-threat/os-agent-guard-rails/issues/39)). |
 
 Runnable Stage 2 apps: `code/medical_app_scenario/`, `code/financial_planner_api_scenario/` (GitHub issues **#11–#17** for the financial stack).
