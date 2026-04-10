@@ -2,22 +2,24 @@
 
 Implementation will live here per [`a_seed/os-agent-guard-rails-overview.md`](../../a_seed/os-agent-guard-rails-overview.md). The canonical implementation plan is [`plan/rpa_guidelines_plan/PLAN.md`](../../plan/rpa_guidelines_plan/PLAN.md).
 
-## Package skeleton (issue #41)
+## Package skeleton (issues #41, #42)
 
-This folder now contains a minimal Python package that can start with config from environment and optionally bootstrap named TypeDB databases.
+This folder now contains a minimal Python package that can start with environment config, probe TypeDB health, and bootstrap named databases on a single TypeDB instance.
 
 ### Package layout
 
 ```text
 code/rpa_plugin_skill/
   .env.example
-  package.json                # npm-style scripts for dev/test/lint/format
-  pyproject.toml              # ruff baseline
+  .gitignore
+  package.json                # npm-style scripts for dev/health/test/lint/format
+  pyproject.toml              # Ruff baseline
   requirements.txt            # typedb-driver + ruff
   rpa_plugin_skill/
     __main__.py
     cli/main.py
     core/config.py
+    core/health.py
     core/typedb_bootstrap.py
   tests/test_config.py
   dev/docker-compose.yml
@@ -62,6 +64,13 @@ With the container running:
 docker compose logs typedb --tail 20
 ```
 
+And from `code/rpa_plugin_skill`:
+
+```bash
+pip install -r requirements.txt
+npm run health
+```
+
 ### Skeleton scripts (`package.json`)
 
 From `code/rpa_plugin_skill`:
@@ -69,12 +78,22 @@ From `code/rpa_plugin_skill`:
 ```bash
 pip install -r requirements.txt
 npm run dev      # python -m rpa_plugin_skill --bootstrap
+npm run health   # python -m rpa_plugin_skill --health
 npm run test     # unittest
 npm run lint     # ruff check
 npm run format   # ruff format
 ```
 
 `npm run dev` reads env vars and can create missing named DBs (`Layer C`, `Layer B`, `Layer A test`) on the configured TypeDB instance.
+
+### Connection settings (`.env.example`)
+
+- `TYPEDB_ADDRESS` (default `127.0.0.1:1729`)
+- `TYPEDB_USER` (default `admin`)
+- `TYPEDB_PASSWORD` (default `password`)
+- `TYPEDB_TLS_ENABLED` (default `false`)
+- `TYPEDB_CONNECT_RETRIES` (default `5`)
+- `TYPEDB_CONNECT_RETRY_DELAY_SEC` (default `1.0`)
 
 ### Stop / reset
 
@@ -98,7 +117,7 @@ pip install -r requirements.txt
 python validate_typeql.py
 ```
 
-Environment variables (optional): `TYPEDB_ADDRESS` (default `127.0.0.1:1729`), `TYPEDB_USER` (default `admin`), `TYPEDB_PASSWORD` (default `password`).
+Environment variables (optional): `TYPEDB_ADDRESS`, `TYPEDB_USER`, `TYPEDB_PASSWORD`.
 
 **CI:** workflow [`.github/workflows/typeql-ci.yml`](../../.github/workflows/typeql-ci.yml) runs the same script against `typedb/typedb:3.8.3`.
 
@@ -108,4 +127,5 @@ Environment variables (optional): `TYPEDB_ADDRESS` (default `127.0.0.1:1729`), `
 |------|--------|
 | **0.1** Local dev stack | [#39](https://github.com/os-threat/os-agent-guard-rails/issues/39) (closed) |
 | **0.2** CI TypeQL validation | [#40](https://github.com/os-threat/os-agent-guard-rails/issues/40) (closed) |
-| **0.3** package skeleton | [#41](https://github.com/os-threat/os-agent-guard-rails/issues/41) |
+| **0.3** package skeleton | [#41](https://github.com/os-threat/os-agent-guard-rails/issues/41) (closed) |
+| **1.1** TypeDB connection configuration | [#42](https://github.com/os-threat/os-agent-guard-rails/issues/42) |
