@@ -1,0 +1,1 @@
+insert $p isa gr_person, has gr_name "Alice";

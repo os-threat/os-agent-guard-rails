@@ -58,6 +58,28 @@ docker compose down -v
 
 Full-stack integration tests are planned to use this (or CI) compose plus optional Postgres/API fixtures; see [`plan/rpa_guidelines_plan/PLAN.md`](../../plan/rpa_guidelines_plan/PLAN.md) §6 (testing approach).
 
+## TypeQL CI (local and GitHub Actions)
+
+Hand-written and generated TypeQL must match a live **TypeDB 3.8+** server and the rules in [`skills/typedb/SKILL.md`](../../skills/typedb/SKILL.md). The script [`typeql_ci/validate_typeql.py`](typeql_ci/validate_typeql.py) applies **passing** schema/write fixtures and ensures **failing** fixtures are rejected.
+
+**Locally** (start TypeDB first — see above):
+
+```bash
+cd code/rpa_plugin_skill/typeql_ci
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+# Linux/macOS: source .venv/bin/activate
+pip install -r requirements.txt
+python validate_typeql.py
+```
+
+Environment variables (optional): `TYPEDB_ADDRESS` (default `127.0.0.1:1729`), `TYPEDB_USER` (default `admin`), `TYPEDB_PASSWORD` (default `password`).
+
+**CI:** workflow [`.github/workflows/typeql-ci.yml`](../../.github/workflows/typeql-ci.yml) runs the same script against `typedb/typedb:3.8.3`.
+
 ## GitHub tracking
 
-Epic **0.1** (local dev stack): [issue #39](https://github.com/os-threat/os-agent-guard-rails/issues/39).
+| Epic | Issue |
+|------|--------|
+| **0.1** Local dev stack | [#39](https://github.com/os-threat/os-agent-guard-rails/issues/39) (closed) |
+| **0.2** CI TypeQL validation | [#40](https://github.com/os-threat/os-agent-guard-rails/issues/40) |

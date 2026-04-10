@@ -1,0 +1,2 @@
+# Pin to TypeDB server 3.8.x (see dev/docker-compose.yml). Normative TypeQL: ../../../skills/typedb/SKILL.md
+typedb-driver==3.8.1

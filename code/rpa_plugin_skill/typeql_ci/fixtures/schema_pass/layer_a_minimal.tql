@@ -1,0 +1,3 @@
+define
+  attribute gr_name, value string;
+  entity gr_person, owns gr_name @key;
