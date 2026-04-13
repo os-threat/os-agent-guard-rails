@@ -10,6 +10,7 @@ from rpa_plugin_skill.core.database_lifecycle import (
     list_databases,
 )
 from rpa_plugin_skill.core.health import probe_typedb
+from rpa_plugin_skill.core.openapi_registration_service import register_api_source
 from rpa_plugin_skill.core.sql_registration_service import (
     list_registered_sources,
     register_sql_source,
@@ -68,6 +69,24 @@ def main() -> int:
         "--list-sources",
         action="store_true",
         help="List registered sources from Layer C.",
+    )
+    parser.add_argument(
+        "--register-api-name",
+        metavar="NAME",
+        help=(
+            "Register an OpenAPI source by name "
+            "(requires --register-api-spec and --register-api-url)."
+        ),
+    )
+    parser.add_argument(
+        "--register-api-spec",
+        metavar="SPEC",
+        help="OpenAPI source (inline text, local path, or URL).",
+    )
+    parser.add_argument(
+        "--register-api-url",
+        metavar="URL",
+        help="API base URL label for registration metadata.",
     )
     args = parser.parse_args()
 
@@ -132,6 +151,27 @@ def main() -> int:
             "[rpa_plugin_skill] SQL registration completed "
             f"registration_id={preview.registration_id} layer_a_db={preview.layer_a_db} "
             f"tables={','.join(preview.tables)}"
+        )
+
+    if args.register_api_name or args.register_api_spec or args.register_api_url:
+        if not (args.register_api_name and args.register_api_spec and args.register_api_url):
+            msg = (
+                "--register-api-name, --register-api-spec, and --register-api-url "
+                "must be provided together"
+            )
+            raise SystemExit(msg)
+        preview = register_api_source(
+            config=config,
+            source_name=args.register_api_name,
+            spec_source=args.register_api_spec,
+            source_url=args.register_api_url,
+        )
+        print(
+            "[rpa_plugin_skill] API registration completed "
+            f"registration_id={preview.registration_id} layer_a_db={preview.layer_a_db} "
+            f"components={','.join(preview.component_entities)} "
+            f"paths={','.join(preview.path_templates)} "
+            f"extract_ops={','.join(preview.extract_operations)}"
         )
 
     if args.activate_source:

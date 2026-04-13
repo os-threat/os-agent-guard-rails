@@ -11,6 +11,7 @@
     "db:archive:example": "python -m rpa_plugin_skill --archive-source example-source",
     "sql:register:example": "python -m rpa_plugin_skill --register-sql-name \"Medical Alpha\" --register-sql-ddl \"CREATE TABLE doctors (id INT PRIMARY KEY, name VARCHAR(100));\" --register-sql-url \"postgres://alpha\"",
     "sql:list:sources": "python -m rpa_plugin_skill --list-sources",
+    "api:register:example": "python -m rpa_plugin_skill --register-api-name FinancialMain --register-api-spec ../../plan/financial_planner_api_scenario/openapi/financial-services.yaml --register-api-url http://localhost:4010/v1",
     "layerc:migrate": "python -m scripts.migrate_layer_c",
     "layerb:migrate": "python -m scripts.migrate_layer_b",
     "layerb:contract": "python -m scripts.check_layer_b_contract",
@@ -19,3 +20,4 @@
     "format": "python -m ruff format rpa_plugin_skill tests scripts"
   }
 }
+
