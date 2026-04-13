@@ -1,0 +1,23 @@
+define
+  attribute gra_patients_id, value integer;
+  attribute gra_patients_name, value string;
+  attribute gra_prescriptions_id, value integer;
+  attribute gra_prescriptions_patient_id, value integer;
+
+  entity gra_patients,
+    owns gra_patients_id @key,
+    owns gra_patients_name;
+
+  entity gra_prescriptions,
+    owns gra_prescriptions_id @key,
+    owns gra_prescriptions_patient_id;
+
+  relation gra_prescriptions_to_patients_fk_1,
+    relates prescriptions_row,
+    relates patients_row;
+
+  entity gra_prescriptions,
+    plays gra_prescriptions_to_patients_fk_1:prescriptions_row;
+
+  entity gra_patients,
+    plays gra_prescriptions_to_patients_fk_1:patients_row;
