@@ -18,7 +18,7 @@ code/rpa_plugin_skill/
   docs/
     sql_ddl_ingestion.md
     sql_to_typeql_transpiler.md
-    manual_sql_registration_check.md
+    manual_sql_registration_check.md\n    openapi_ingestion.md
   rpa_plugin_skill/
     __main__.py
     cli/main.py
@@ -50,7 +50,7 @@ code/rpa_plugin_skill/
   tests/test_layer_c_store.py
   tests/test_sql_ddl_ingest.py
   tests/test_sql_to_typeql.py
-  tests/test_sql_registration_service.py
+  tests/test_sql_registration_service.py\n  tests/test_openapi_ingest.py
   tests/golden/sql_to_typeql_sample.tql
   dev/docker-compose.yml
   typeql_ci/
@@ -106,4 +106,5 @@ npm run format
 | **3.2** Layer B seed/query tests | [#47](https://github.com/os-threat/os-agent-guard-rails/issues/47) (closed) |
 | **4.1** SQL DDL ingestion | [#48](https://github.com/os-threat/os-agent-guard-rails/issues/48) (closed) |
 | **4.2** SQL -> TypeQL schema transpiler | [#49](https://github.com/os-threat/os-agent-guard-rails/issues/49) (closed) |
-| **4.3** SQL register flow | [#50](https://github.com/os-threat/os-agent-guard-rails/issues/50) |
+| **4.3** SQL register flow | [#50](https://github.com/os-threat/os-agent-guard-rails/issues/50) (closed) |\n| **5.1** OpenAPI fetch + parse | [#51](https://github.com/os-threat/os-agent-guard-rails/issues/51) |
+
