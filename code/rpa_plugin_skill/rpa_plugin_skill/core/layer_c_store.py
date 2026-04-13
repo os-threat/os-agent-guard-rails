@@ -120,6 +120,46 @@ put
         finally:
             driver.close()
 
+    def set_rule_status(self, rule_id: str, status: str) -> None:
+        driver = connect_with_retry(self.config)
+        try:
+            with driver.transaction(self.config.layer_c_db, TransactionType.WRITE) as tx:
+                tx.query(
+                    f'''match
+  $rule isa gr_rule_definition,
+    has gr_rule_id "{rule_id}",
+    has gr_rule_status $old;
+delete
+  $rule has $old;
+insert
+  $rule has gr_rule_status "{status}";'''
+                ).resolve()
+                tx.commit()
+        finally:
+            driver.close()
+
+    def delete_rule(self, registration_id: str, rule_id: str) -> None:
+        driver = connect_with_retry(self.config)
+        try:
+            with driver.transaction(self.config.layer_c_db, TransactionType.WRITE) as tx:
+                tx.query(
+                    f'''match
+  $source isa gr_registered_source, has gr_registration_id "{registration_id}";
+  $rule isa gr_rule_definition, has gr_rule_id "{rule_id}";
+  $binding (source: $source, rule: $rule) isa gr_source_rule_binding;
+delete
+  $binding;'''
+                ).resolve()
+                tx.query(
+                    f'''match
+  $rule isa gr_rule_definition, has gr_rule_id "{rule_id}";
+delete
+  $rule;'''
+                ).resolve()
+                tx.commit()
+        finally:
+            driver.close()
+
     def upsert_task(
         self,
         registration_id: str,
@@ -206,6 +246,37 @@ fetch {
   "source_url": $url,
   "source_is_active": $active
 };'''
+                ).resolve()
+                if not answer.is_concept_documents():
+                    return []
+                return list(answer.as_concept_documents())
+        finally:
+            driver.close()
+
+    def fetch_rules_for_source(self, registration_id: str) -> list[dict]:
+        driver = connect_with_retry(self.config)
+        try:
+            with driver.transaction(self.config.layer_c_db, TransactionType.READ) as tx:
+                answer = tx.query(
+                    f'''match
+  $source isa gr_registered_source, has gr_registration_id "{registration_id}";
+  $binding (source: $source, rule: $rule) isa gr_source_rule_binding;
+  $rule has gr_rule_id $id,
+    has gr_rule_name $name,
+    has gr_rule_nl_text $nl,
+    has gr_rule_horn_text $horn,
+    has gr_rule_typeql_fun $typeql,
+    has gr_rule_ast_ref $ast,
+    has gr_rule_status $status;
+fetch {{
+  "rule_id": $id,
+  "rule_name": $name,
+  "rule_nl_text": $nl,
+  "rule_horn_text": $horn,
+  "rule_typeql_fun": $typeql,
+  "rule_ast_ref": $ast,
+  "rule_status": $status
+}};'''
                 ).resolve()
                 if not answer.is_concept_documents():
                     return []

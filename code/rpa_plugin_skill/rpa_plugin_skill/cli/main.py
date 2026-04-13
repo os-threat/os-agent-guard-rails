@@ -11,6 +11,12 @@ from rpa_plugin_skill.core.database_lifecycle import (
 )
 from rpa_plugin_skill.core.health import probe_typedb
 from rpa_plugin_skill.core.openapi_registration_service import register_api_source
+from rpa_plugin_skill.core.rule_service import (
+    archive_rule_for_source,
+    delete_rule_for_source,
+    list_rules_for_source,
+    upsert_rule_for_source,
+)
 from rpa_plugin_skill.core.sql_registration_service import (
     list_registered_sources,
     register_sql_source,
@@ -87,6 +93,48 @@ def main() -> int:
         "--register-api-url",
         metavar="URL",
         help="API base URL label for registration metadata.",
+    )
+    parser.add_argument("--rule-source", metavar="REG_ID", help="Rule source registration id.")
+    parser.add_argument("--rule-id", metavar="RULE_ID", help="Rule identifier.")
+    parser.add_argument("--rule-name", metavar="RULE_NAME", help="Rule display name.")
+    parser.add_argument("--rule-nl", metavar="TEXT", help="Natural-language rule text.")
+    parser.add_argument("--rule-horn", metavar="TEXT", help="Horn-clause form for the rule.")
+    parser.add_argument(
+        "--rule-typeql",
+        metavar="QUERY",
+        help="TypeQL schema/function query linked to the rule.",
+    )
+    parser.add_argument("--rule-ast-ref", metavar="REF", help="Rule AST reference.")
+    parser.add_argument(
+        "--rule-status",
+        metavar="STATUS",
+        default="draft",
+        help="Rule status: draft|active|archived (default: draft).",
+    )
+    parser.add_argument(
+        "--rule-list",
+        action="store_true",
+        help="List rules for --rule-source.",
+    )
+    parser.add_argument(
+        "--rule-upsert",
+        action="store_true",
+        help="Upsert rule metadata and associated Layer A logic.",
+    )
+    parser.add_argument(
+        "--rule-archive",
+        action="store_true",
+        help="Archive a rule in Layer C (tombstone semantics).",
+    )
+    parser.add_argument(
+        "--rule-delete",
+        action="store_true",
+        help="Hard-delete rule metadata from Layer C.",
+    )
+    parser.add_argument(
+        "--rule-undefine-query",
+        metavar="QUERY",
+        help="Optional TypeQL undefine query for --rule-delete.",
     )
     args = parser.parse_args()
 
@@ -181,6 +229,65 @@ def main() -> int:
     if args.list_sources:
         docs = list_registered_sources(config)
         print(f"[rpa_plugin_skill] SOURCES {docs}")
+
+    if args.rule_list:
+        if not args.rule_source:
+            raise SystemExit("--rule-list requires --rule-source")
+        docs = list_rules_for_source(config, args.rule_source)
+        print(f"[rpa_plugin_skill] RULES source={args.rule_source} docs={docs}")
+
+    if args.rule_upsert:
+        required = [
+            args.rule_source,
+            args.rule_id,
+            args.rule_name,
+            args.rule_nl,
+            args.rule_horn,
+            args.rule_typeql,
+            args.rule_ast_ref,
+        ]
+        if not all(required):
+            raise SystemExit(
+                "--rule-upsert requires --rule-source --rule-id --rule-name --rule-nl "
+                "--rule-horn --rule-typeql --rule-ast-ref"
+            )
+        preview = upsert_rule_for_source(
+            config=config,
+            registration_id=args.rule_source,
+            rule_id=args.rule_id,
+            rule_name=args.rule_name,
+            nl_text=args.rule_nl,
+            horn_text=args.rule_horn,
+            typeql_fun=args.rule_typeql,
+            ast_ref=args.rule_ast_ref,
+            status=args.rule_status,
+        )
+        print(
+            "[rpa_plugin_skill] RULE_UPSERT "
+            f"source={preview.registration_id} rule_id={preview.rule_id} "
+            f"status={preview.rule_status} layer_a_db={preview.layer_a_db}"
+        )
+
+    if args.rule_archive:
+        if not (args.rule_source and args.rule_id):
+            raise SystemExit("--rule-archive requires --rule-source and --rule-id")
+        archive_rule_for_source(config, args.rule_source, args.rule_id)
+        print(
+            f"[rpa_plugin_skill] RULE_ARCHIVE source={args.rule_source} rule_id={args.rule_id}"
+        )
+
+    if args.rule_delete:
+        if not (args.rule_source and args.rule_id):
+            raise SystemExit("--rule-delete requires --rule-source and --rule-id")
+        delete_rule_for_source(
+            config=config,
+            registration_id=args.rule_source,
+            rule_id=args.rule_id,
+            undefine_query=args.rule_undefine_query,
+        )
+        print(
+            f"[rpa_plugin_skill] RULE_DELETE source={args.rule_source} rule_id={args.rule_id}"
+        )
 
     if args.list_databases:
         dbs = list_databases(config)

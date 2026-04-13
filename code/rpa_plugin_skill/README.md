@@ -18,7 +18,11 @@ code/rpa_plugin_skill/
   docs/
     sql_ddl_ingestion.md
     sql_to_typeql_transpiler.md
-    manual_sql_registration_check.md\n    openapi_ingestion.md
+    manual_sql_registration_check.md
+    openapi_ingestion.md
+    openapi_to_typeql_mapping.md
+    manual_api_registration_check.md
+    rule_crud_semantics.md
   rpa_plugin_skill/
     __main__.py
     cli/main.py
@@ -31,7 +35,11 @@ code/rpa_plugin_skill/
     core/layer_c_store.py
     core/sql_ddl_ingest.py
     core/sql_to_typeql.py
-    core/sql_registration_service.py\n    core/openapi_ingest.py\n    core/openapi_to_typeql.py\n    core/openapi_registration_service.py
+    core/sql_registration_service.py
+    core/openapi_ingest.py
+    core/openapi_to_typeql.py
+    core/openapi_registration_service.py
+    core/rule_service.py
   schema/layer_c/
     manifest.json
     MIGRATIONS.md
@@ -50,8 +58,13 @@ code/rpa_plugin_skill/
   tests/test_layer_c_store.py
   tests/test_sql_ddl_ingest.py
   tests/test_sql_to_typeql.py
-  tests/test_sql_registration_service.py\n  tests/test_openapi_ingest.py\n  tests/test_openapi_to_typeql.py\n  tests/test_openapi_registration_service.py
-  tests/golden/sql_to_typeql_sample.tql\n  tests/golden/openapi_to_typeql_sample.tql
+  tests/test_sql_registration_service.py
+  tests/test_openapi_ingest.py
+  tests/test_openapi_to_typeql.py
+  tests/test_openapi_registration_service.py
+  tests/test_rule_service.py
+  tests/golden/sql_to_typeql_sample.tql
+  tests/golden/openapi_to_typeql_sample.tql
   dev/docker-compose.yml
   typeql_ci/
 ```
@@ -83,6 +96,9 @@ npm run db:register:example
 npm run db:archive:example
 npm run sql:register:example
 npm run sql:list:sources
+npm run api:register:example
+npm run rule:list:example
+npm run rule:archive:example
 npm run layerc:migrate
 npm run layerb:migrate
 npm run layerb:contract
@@ -106,7 +122,12 @@ npm run format
 | **3.2** Layer B seed/query tests | [#47](https://github.com/os-threat/os-agent-guard-rails/issues/47) (closed) |
 | **4.1** SQL DDL ingestion | [#48](https://github.com/os-threat/os-agent-guard-rails/issues/48) (closed) |
 | **4.2** SQL -> TypeQL schema transpiler | [#49](https://github.com/os-threat/os-agent-guard-rails/issues/49) (closed) |
-| **4.3** SQL register flow | [#50](https://github.com/os-threat/os-agent-guard-rails/issues/50) (closed) |\n| **5.1** OpenAPI fetch + parse | [#51](https://github.com/os-threat/os-agent-guard-rails/issues/51) (closed) |\n| **5.2** OpenAPI -> TypeQL transpiler | [#52](https://github.com/os-threat/os-agent-guard-rails/issues/52) (closed) |\n| **5.3** API register flow | [#53](https://github.com/os-threat/os-agent-guard-rails/issues/53) |
+| **4.3** SQL register flow | [#50](https://github.com/os-threat/os-agent-guard-rails/issues/50) (closed) |
+| **5.1** OpenAPI fetch + parse | [#51](https://github.com/os-threat/os-agent-guard-rails/issues/51) (closed) |
+| **5.2** OpenAPI -> TypeQL transpiler | [#52](https://github.com/os-threat/os-agent-guard-rails/issues/52) (closed) |
+| **5.3** API register flow | [#53](https://github.com/os-threat/os-agent-guard-rails/issues/53) (closed) |
+| **6.1** Rule list CRUD | [#54](https://github.com/os-threat/os-agent-guard-rails/issues/54) |
+
 
 
 
