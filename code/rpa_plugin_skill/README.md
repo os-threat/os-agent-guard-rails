@@ -4,7 +4,7 @@ Implementation will live here per [`a_seed/os-agent-guard-rails-overview.md`](..
 
 ## Package skeleton (issues #41–#44)
 
-This folder contains a minimal Python package that can start with environment config, probe TypeDB health, manage deterministic Layer A database names for source registrations, and apply Layer C schema migrations.
+This folder contains a minimal Python package that can start with environment config, probe TypeDB health, manage deterministic Layer A database names for source registrations, apply Layer C schema migrations, and expose a typed Layer C store for UI/worker data access.
 
 ### Package layout
 
@@ -152,4 +152,5 @@ python validate_typeql.py
 | **0.3** package skeleton | [#41](https://github.com/os-threat/os-agent-guard-rails/issues/41) (closed) |
 | **1.1** TypeDB connection configuration | [#42](https://github.com/os-threat/os-agent-guard-rails/issues/42) (closed) |
 | **1.2** logical database lifecycle | [#43](https://github.com/os-threat/os-agent-guard-rails/issues/43) (closed) |
-| **2.1** Layer C schema | [#44](https://github.com/os-threat/os-agent-guard-rails/issues/44) |
+| **2.1** Layer C schema | [#44](https://github.com/os-threat/os-agent-guard-rails/issues/44) (closed) |\n| **2.2** Layer C API layer | [#45](https://github.com/os-threat/os-agent-guard-rails/issues/45) |
+

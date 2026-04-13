@@ -4,7 +4,7 @@ import os
 import unittest
 
 from rpa_plugin_skill.core.config import AppConfig
-from scripts.migrate_layer_c import _schema_contains_marker
+from rpa_plugin_skill.core.layer_c_migrations import schema_contains_marker
 
 
 class LayerCMigrationTests(unittest.TestCase):
@@ -14,8 +14,8 @@ class LayerCMigrationTests(unittest.TestCase):
 
     def test_marker_detection(self) -> None:
         schema = "define\n  entity gr_registered_source;"
-        self.assertTrue(_schema_contains_marker(schema, "gr_registered_source"))
-        self.assertFalse(_schema_contains_marker(schema, "gr_task_definition"))
+        self.assertTrue(schema_contains_marker(schema, "gr_registered_source"))
+        self.assertFalse(schema_contains_marker(schema, "gr_task_definition"))
 
     def test_config_layer_c_name_default(self) -> None:
         cfg = AppConfig.from_env()
@@ -24,3 +24,4 @@ class LayerCMigrationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
