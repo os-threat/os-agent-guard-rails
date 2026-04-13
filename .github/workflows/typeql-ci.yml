@@ -42,3 +42,7 @@ jobs:
 
       - name: Validate TypeQL fixtures
         run: python code/rpa_plugin_skill/typeql_ci/validate_typeql.py
+
+      - name: Validate Layer B contract seed/query checks
+        run: python -m scripts.check_layer_b_contract
+        working-directory: code/rpa_plugin_skill
