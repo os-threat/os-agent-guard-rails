@@ -2,9 +2,9 @@
 
 Implementation will live here per [`a_seed/os-agent-guard-rails-overview.md`](../../a_seed/os-agent-guard-rails-overview.md). The canonical implementation plan is [`plan/rpa_guidelines_plan/PLAN.md`](../../plan/rpa_guidelines_plan/PLAN.md).
 
-## Package skeleton (issues #41–#44)
+## Package skeleton (issues #41–#46)
 
-This folder contains a minimal Python package that can start with environment config, probe TypeDB health, manage deterministic Layer A database names for source registrations, apply Layer C schema migrations, and expose a typed Layer C store for UI/worker data access.
+This folder contains a minimal Python package that can start with environment config, probe TypeDB health, manage deterministic Layer A database names for source registrations, and apply Layer C and Layer B schema migrations.
 
 ### Package layout
 
@@ -22,14 +22,24 @@ code/rpa_plugin_skill/
     core/health.py
     core/database_lifecycle.py
     core/typedb_bootstrap.py
+    core/layer_c_migrations.py
+    core/layer_b_migrations.py
+    core/layer_c_store.py
   schema/layer_c/
     manifest.json
     MIGRATIONS.md
     v1/001_define_layer_c.tql
+  schema/layer_b/
+    manifest.json
+    MIGRATIONS.md
+    v1/001_define_layer_b.tql
   scripts/migrate_layer_c.py
+  scripts/migrate_layer_b.py
   tests/test_config.py
   tests/test_database_lifecycle.py
   tests/test_layer_c_migrations.py
+  tests/test_layer_b_migrations.py
+  tests/test_layer_c_store.py
   dev/docker-compose.yml
   typeql_ci/
 ```
@@ -45,6 +55,13 @@ The plugin uses **one TypeDB server instance** (one host/port). On that instance
 | **Layer A** (one per app) | Shadow domain for each registered SQL or OpenAPI source |
 
 Normative **TypeQL** for TypeDB **3.8+** is in [`skills/typedb/SKILL.md`](../../skills/typedb/SKILL.md) (transaction types, `define` / `redefine`, semicolon-terminated queries, entity/relation/attribute roots, `@key`, etc.).
+
+## Layer B mapping (PLAN §3)
+
+- **OpenClaw agent** -> `grb_agent`
+- **Guard check** -> `grb_action`
+- **Guard data trace** (`rule id`, `schema hash`, `sync watermark`) -> `grb_data_trace`
+- Link action to trace -> `grb_action_data_trace_binding`
 
 ## Deterministic Layer A naming and lifecycle
 
@@ -63,33 +80,19 @@ Example shape: `guardrails_layer_a_{sanitized}_{hash8}`
 - **List:** list databases on configured instance
 - **Archive source:** in v1, archive is implemented as delete of the mapped Layer A DB
 
-## Layer C schema migrations
+## Layer C and Layer B schema migrations
 
-Layer C schema is versioned under [`schema/layer_c/`](schema/layer_c/):
+Schema migrations are versioned under [`schema/layer_c/`](schema/layer_c/) and [`schema/layer_b/`](schema/layer_b/):
 
 - `manifest.json` defines ordered migrations + marker labels
-- `v1/001_define_layer_c.tql` defines source/rule/task/schedule/settings entities and relations
-- `scripts/migrate_layer_c.py` applies missing migrations in **schema transactions**
+- `v1/001_define_layer_c.tql` defines source/rule/task/schedule/settings schema
+- `v1/001_define_layer_b.tql` defines promise-graph subset schema
+- migration scripts apply missing migrations in **schema transactions**
 
-Details: [`schema/layer_c/MIGRATIONS.md`](schema/layer_c/MIGRATIONS.md).
+Details:
 
-## Prerequisites
-
-- **Docker Desktop** on Windows (Linux containers), or Docker Engine on Linux/macOS  
-- Optional: **WSL 2** on Windows if you prefer a Linux shell for `docker compose` and scripts; Docker Desktop integrates with WSL2
-
-## Start TypeDB
-
-From this package’s `dev` folder:
-
-```bash
-cd code/rpa_plugin_skill/dev
-docker compose up -d
-docker compose ps
-```
-
-- **Driver gRPC**: `localhost:1729` (set `TYPEDB_ADDRESS` accordingly)
-- Port **8000** is also exposed by the official image (see [TypeDB CE install — Docker](https://typedb.com/docs/home/install/ce/)).
+- [`schema/layer_c/MIGRATIONS.md`](schema/layer_c/MIGRATIONS.md)
+- [`schema/layer_b/MIGRATIONS.md`](schema/layer_b/MIGRATIONS.md)
 
 ## Scripts (`package.json`)
 
@@ -103,6 +106,7 @@ npm run db:list             # list DBs
 npm run db:register:example # create/get Layer A DB mapping
 npm run db:archive:example  # archive/delete mapped Layer A DB
 npm run layerc:migrate      # apply pending Layer C schema migrations
+npm run layerb:migrate      # apply pending Layer B schema migrations
 npm run test                # unittest
 npm run lint                # ruff check
 npm run format              # ruff format
@@ -152,5 +156,6 @@ python validate_typeql.py
 | **0.3** package skeleton | [#41](https://github.com/os-threat/os-agent-guard-rails/issues/41) (closed) |
 | **1.1** TypeDB connection configuration | [#42](https://github.com/os-threat/os-agent-guard-rails/issues/42) (closed) |
 | **1.2** logical database lifecycle | [#43](https://github.com/os-threat/os-agent-guard-rails/issues/43) (closed) |
-| **2.1** Layer C schema | [#44](https://github.com/os-threat/os-agent-guard-rails/issues/44) (closed) |\n| **2.2** Layer C API layer | [#45](https://github.com/os-threat/os-agent-guard-rails/issues/45) |
-
+| **2.1** Layer C schema | [#44](https://github.com/os-threat/os-agent-guard-rails/issues/44) (closed) |
+| **2.2** Layer C API layer | [#45](https://github.com/os-threat/os-agent-guard-rails/issues/45) (closed) |
+| **3.1** Layer B schema subset | [#46](https://github.com/os-threat/os-agent-guard-rails/issues/46) |

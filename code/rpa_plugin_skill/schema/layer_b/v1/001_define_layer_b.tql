@@ -1,0 +1,105 @@
+define
+  attribute grb_agent_id, value string;
+  attribute grb_agent_name, value string;
+  attribute grb_agent_email, value string;
+
+  attribute grb_promise_id, value string;
+  attribute grb_promise_title, value string;
+  attribute grb_promise_state, value string @values("proposed", "accepted", "rejected", "fulfilled", "broken");
+
+  attribute grb_assessment_id, value string;
+  attribute grb_assessment_outcome, value string @values("allow", "deny", "needs_review");
+  attribute grb_assessment_notes, value string;
+
+  attribute grb_action_id, value string;
+  attribute grb_action_kind, value string;
+  attribute grb_action_status, value string @values("planned", "executed", "blocked");
+
+  attribute grb_session_id, value string;
+  attribute grb_session_started_at, value datetime;
+  attribute grb_session_ended_at, value datetime;
+
+  attribute grb_task_id, value string;
+  attribute grb_task_name, value string;
+
+  attribute grb_data_trace_id, value string;
+  attribute grb_rule_id, value string;
+  attribute grb_schema_hash, value string;
+  attribute grb_sync_watermark, value string;
+
+  entity grb_agent,
+    owns grb_agent_id @key,
+    owns grb_agent_name,
+    owns grb_agent_email,
+    plays grb_promise_binding:creator,
+    plays grb_promise_binding:target,
+    plays grb_assessment_binding:assessor,
+    plays grb_action_binding:actor,
+    plays grb_session_participation:agent;
+
+  entity grb_promise,
+    owns grb_promise_id @key,
+    owns grb_promise_title,
+    owns grb_promise_state,
+    plays grb_promise_binding:promise,
+    plays grb_task_promise_binding:promise,
+    plays grb_assessment_binding:promise,
+    plays grb_action_binding:promise;
+
+  entity grb_assessment,
+    owns grb_assessment_id @key,
+    owns grb_assessment_outcome,
+    owns grb_assessment_notes,
+    plays grb_assessment_binding:assessment;
+
+  entity grb_action,
+    owns grb_action_id @key,
+    owns grb_action_kind,
+    owns grb_action_status,
+    plays grb_action_binding:action,
+    plays grb_action_data_trace_binding:action;
+
+  entity grb_session,
+    owns grb_session_id @key,
+    owns grb_session_started_at,
+    owns grb_session_ended_at,
+    plays grb_session_participation:session;
+
+  entity grb_task,
+    owns grb_task_id @key,
+    owns grb_task_name,
+    plays grb_task_promise_binding:task;
+
+  entity grb_data_trace,
+    owns grb_data_trace_id @key,
+    owns grb_rule_id,
+    owns grb_schema_hash,
+    owns grb_sync_watermark,
+    plays grb_action_data_trace_binding:data_trace;
+
+  relation grb_promise_binding,
+    relates creator,
+    relates target,
+    relates promise;
+
+  relation grb_task_promise_binding,
+    relates task,
+    relates promise;
+
+  relation grb_assessment_binding,
+    relates assessor,
+    relates assessment,
+    relates promise;
+
+  relation grb_action_binding,
+    relates actor,
+    relates action,
+    relates promise;
+
+  relation grb_session_participation,
+    relates session,
+    relates agent;
+
+  relation grb_action_data_trace_binding,
+    relates action,
+    relates data_trace;

@@ -1,0 +1,8 @@
+[
+  {
+    "id": "layer_b_v1_001",
+    "file": "v1/001_define_layer_b.tql",
+    "marker_label": "grb_agent",
+    "description": "Initial Layer B promise graph subset for agent, promise, action, assessment, session, task, data-trace"
+  }
+]
