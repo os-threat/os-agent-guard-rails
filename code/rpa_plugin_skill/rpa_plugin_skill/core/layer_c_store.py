@@ -76,16 +76,8 @@ class LayerCStore:
                 tx.query(
                     f'''match
   $source isa gr_registered_source, has gr_registration_id "{data.registration_id}";
-  $binding (source: $source, credential: $existing) isa gr_source_credential_binding;
-delete
-  $binding;'''
-                ).resolve()
-
-                tx.query(
-                    f'''match
-  $source isa gr_registered_source, has gr_registration_id "{data.registration_id}";
   $cred isa gr_credential_ref, has gr_credential_ref_id "{data.credential_ref_id}";
-insert
+put
   (source: $source, credential: $cred) isa gr_source_credential_binding;'''
                 ).resolve()
                 tx.commit()
@@ -120,15 +112,8 @@ insert
                 tx.query(
                     f'''match
   $source isa gr_registered_source, has gr_registration_id "{registration_id}";
-  $binding (source: $source, rule: $existing) isa gr_source_rule_binding;
-delete
-  $binding;'''
-                ).resolve()
-                tx.query(
-                    f'''match
-  $source isa gr_registered_source, has gr_registration_id "{registration_id}";
   $rule isa gr_rule_definition, has gr_rule_id "{rule_id}";
-insert
+put
   (source: $source, rule: $rule) isa gr_source_rule_binding;'''
                 ).resolve()
                 tx.commit()
@@ -159,15 +144,8 @@ insert
                 tx.query(
                     f'''match
   $source isa gr_registered_source, has gr_registration_id "{registration_id}";
-  $binding (source: $source, task: $existing) isa gr_source_task_binding;
-delete
-  $binding;'''
-                ).resolve()
-                tx.query(
-                    f'''match
-  $source isa gr_registered_source, has gr_registration_id "{registration_id}";
   $task isa gr_task_definition, has gr_task_id "{task_id}";
-insert
+put
   (source: $source, task: $task) isa gr_source_task_binding;'''
                 ).resolve()
                 tx.commit()
@@ -179,7 +157,13 @@ insert
         try:
             with driver.transaction(self.config.layer_c_db, TransactionType.WRITE) as tx:
                 tx.query(
-                    f'''put
+                    f'''match
+  $existing isa gr_setting, has gr_setting_key "{key}";
+delete
+  $existing;'''
+                ).resolve()
+                tx.query(
+                    f'''insert
   $setting isa gr_setting,
     has gr_setting_key "{key}",
     has gr_setting_value "{value}";'''

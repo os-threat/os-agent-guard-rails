@@ -10,6 +10,11 @@ from rpa_plugin_skill.core.database_lifecycle import (
     list_databases,
 )
 from rpa_plugin_skill.core.health import probe_typedb
+from rpa_plugin_skill.core.sql_registration_service import (
+    list_registered_sources,
+    register_sql_source,
+    set_active_registration,
+)
 
 
 def main() -> int:
@@ -38,6 +43,31 @@ def main() -> int:
         "--list-databases",
         action="store_true",
         help="List databases visible on the configured TypeDB instance.",
+    )
+    parser.add_argument(
+        "--register-sql-name",
+        metavar="NAME",
+        help="Register a SQL source by name (requires --register-sql-ddl and --register-sql-url).",
+    )
+    parser.add_argument(
+        "--register-sql-ddl",
+        metavar="DDL",
+        help="DDL input for SQL registration (inline text, local path, or URL).",
+    )
+    parser.add_argument(
+        "--register-sql-url",
+        metavar="URL",
+        help="SQL source URL/DSN label for registration metadata.",
+    )
+    parser.add_argument(
+        "--activate-source",
+        metavar="REG_ID",
+        help="Switch active registration context in Layer C settings.",
+    )
+    parser.add_argument(
+        "--list-sources",
+        action="store_true",
+        help="List registered sources from Layer C.",
     )
     args = parser.parse_args()
 
@@ -82,6 +112,35 @@ def main() -> int:
             "[rpa_plugin_skill] Layer A mapping archived "
             f"source={args.archive_source} db={name}"
         )
+
+    if args.register_sql_name or args.register_sql_ddl or args.register_sql_url:
+        if not (args.register_sql_name and args.register_sql_ddl and args.register_sql_url):
+            msg = (
+                "--register-sql-name, --register-sql-ddl, and --register-sql-url "
+                "must be provided together"
+            )
+            raise SystemExit(
+                msg
+            )
+        preview = register_sql_source(
+            config=config,
+            source_name=args.register_sql_name,
+            ddl_source=args.register_sql_ddl,
+            source_url=args.register_sql_url,
+        )
+        print(
+            "[rpa_plugin_skill] SQL registration completed "
+            f"registration_id={preview.registration_id} layer_a_db={preview.layer_a_db} "
+            f"tables={','.join(preview.tables)}"
+        )
+
+    if args.activate_source:
+        active = set_active_registration(config, args.activate_source)
+        print(f"[rpa_plugin_skill] Active registration set to {active}")
+
+    if args.list_sources:
+        docs = list_registered_sources(config)
+        print(f"[rpa_plugin_skill] SOURCES {docs}")
 
     if args.list_databases:
         dbs = list_databases(config)
