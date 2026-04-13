@@ -1,0 +1,8 @@
+[
+  {
+    "id": "layer_c_v1_001",
+    "file": "v1/001_define_layer_c.tql",
+    "marker_label": "gr_registered_source",
+    "description": "Initial Layer C schema for registration, rules, tasks, schedules, settings"
+  }
+]

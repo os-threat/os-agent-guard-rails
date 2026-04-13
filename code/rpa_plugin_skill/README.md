@@ -2,9 +2,9 @@
 
 Implementation will live here per [`a_seed/os-agent-guard-rails-overview.md`](../../a_seed/os-agent-guard-rails-overview.md). The canonical implementation plan is [`plan/rpa_guidelines_plan/PLAN.md`](../../plan/rpa_guidelines_plan/PLAN.md).
 
-## Package skeleton (issues #41–#43)
+## Package skeleton (issues #41–#44)
 
-This folder contains a minimal Python package that can start with environment config, probe TypeDB health, and manage deterministic Layer A database names for source registrations.
+This folder contains a minimal Python package that can start with environment config, probe TypeDB health, manage deterministic Layer A database names for source registrations, and apply Layer C schema migrations.
 
 ### Package layout
 
@@ -12,7 +12,7 @@ This folder contains a minimal Python package that can start with environment co
 code/rpa_plugin_skill/
   .env.example
   .gitignore
-  package.json                # npm-style scripts for dev/health/db/test/lint/format
+  package.json                # npm-style scripts for dev/health/db/migrate/test/lint/format
   pyproject.toml              # Ruff baseline
   requirements.txt            # typedb-driver + ruff
   rpa_plugin_skill/
@@ -22,8 +22,14 @@ code/rpa_plugin_skill/
     core/health.py
     core/database_lifecycle.py
     core/typedb_bootstrap.py
+  schema/layer_c/
+    manifest.json
+    MIGRATIONS.md
+    v1/001_define_layer_c.tql
+  scripts/migrate_layer_c.py
   tests/test_config.py
   tests/test_database_lifecycle.py
+  tests/test_layer_c_migrations.py
   dev/docker-compose.yml
   typeql_ci/
 ```
@@ -57,6 +63,16 @@ Example shape: `guardrails_layer_a_{sanitized}_{hash8}`
 - **List:** list databases on configured instance
 - **Archive source:** in v1, archive is implemented as delete of the mapped Layer A DB
 
+## Layer C schema migrations
+
+Layer C schema is versioned under [`schema/layer_c/`](schema/layer_c/):
+
+- `manifest.json` defines ordered migrations + marker labels
+- `v1/001_define_layer_c.tql` defines source/rule/task/schedule/settings entities and relations
+- `scripts/migrate_layer_c.py` applies missing migrations in **schema transactions**
+
+Details: [`schema/layer_c/MIGRATIONS.md`](schema/layer_c/MIGRATIONS.md).
+
 ## Prerequisites
 
 - **Docker Desktop** on Windows (Linux containers), or Docker Engine on Linux/macOS  
@@ -86,6 +102,7 @@ npm run health              # TypeDB health probe
 npm run db:list             # list DBs
 npm run db:register:example # create/get Layer A DB mapping
 npm run db:archive:example  # archive/delete mapped Layer A DB
+npm run layerc:migrate      # apply pending Layer C schema migrations
 npm run test                # unittest
 npm run lint                # ruff check
 npm run format              # ruff format
@@ -134,5 +151,5 @@ python validate_typeql.py
 | **0.2** CI TypeQL validation | [#40](https://github.com/os-threat/os-agent-guard-rails/issues/40) (closed) |
 | **0.3** package skeleton | [#41](https://github.com/os-threat/os-agent-guard-rails/issues/41) (closed) |
 | **1.1** TypeDB connection configuration | [#42](https://github.com/os-threat/os-agent-guard-rails/issues/42) (closed) |
-| **1.2** logical database lifecycle | [#43](https://github.com/os-threat/os-agent-guard-rails/issues/43) |
-
+| **1.2** logical database lifecycle | [#43](https://github.com/os-threat/os-agent-guard-rails/issues/43) (closed) |
+| **2.1** Layer C schema | [#44](https://github.com/os-threat/os-agent-guard-rails/issues/44) |
