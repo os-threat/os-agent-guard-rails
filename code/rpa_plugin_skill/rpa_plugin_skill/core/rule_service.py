@@ -7,6 +7,7 @@ from typedb.driver import TransactionType
 from .config import AppConfig
 from .database_lifecycle import layer_a_db_name
 from .layer_c_store import LayerCStore
+from .nl_rule_codegen import compile_nl_rule
 from .typedb_bootstrap import connect_with_retry
 
 
@@ -52,6 +53,29 @@ def upsert_rule_for_source(
         rule_name=rule_name,
         rule_status=status,
         layer_a_db=layer_a_db_name(config, registration_id),
+    )
+
+
+def upsert_rule_from_nl_for_source(
+    config: AppConfig,
+    registration_id: str,
+    rule_id: str,
+    rule_name: str,
+    nl_text: str,
+    status: str = "draft",
+) -> RulePreview:
+    artifacts = compile_nl_rule(rule_id=rule_id, nl_text=nl_text)
+    return upsert_rule_for_source(
+        config=config,
+        registration_id=registration_id,
+        rule_id=rule_id,
+        rule_name=rule_name,
+        nl_text=nl_text,
+        horn_text=artifacts.horn_clause,
+        typeql_fun=artifacts.redefine_fun_query,
+        ast_ref=artifacts.ast_ref,
+        status=status,
+        apply_layer_a_logic=True,
     )
 
 

@@ -1,0 +1,10 @@
+{
+  "id": "rule-valid-001",
+  "nl_text": "If concentration is high then deny else allow",
+  "expected": {
+    "condition_text": "concentration is high",
+    "then_action": "deny",
+    "else_action": "allow",
+    "function_label": "gr_guard_fp_r01"
+  }
+}

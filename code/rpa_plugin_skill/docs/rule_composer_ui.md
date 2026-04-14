@@ -18,22 +18,22 @@ This module implements the Rule Composer flow from the overview Basic Flow:
 
 Generated TypeQL uses `fun` style from `skills/typedb/SKILL.md`:
 
-- function is inside a `define` block
+- function is inside a `redefine` block
 - semicolon-terminated statements inside `match` and `return`
-- boolean guard semantics via `return check;`
+- boolean guard semantics via explicit `return true;` or `return false;`
 
 Example shape:
 
 ```typeql
-define
+redefine
   fun gr_guard_fp_r01($subject_key: string) -> boolean:
     match
       $subject isa gra_client, has gra_client_id == $subject_key;
-    return check;
+    return false;
 ```
 
 ## CLI preview
 
-`python -m rpa_plugin_skill --rule-compose-preview --rule-id FP-R01 --rule-name "Diversification threshold" --rule-nl "If concentration is high then deny recommendation"`
+`python -m rpa_plugin_skill --rule-compose-preview --rule-id FP-R01 --rule-name "Diversification threshold" --rule-nl "If concentration is high then deny else allow"`
 
 The command prints NL + logic tab + TypeQL tab payload that a UI can render directly.

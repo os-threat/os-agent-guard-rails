@@ -5,11 +5,13 @@ from dataclasses import replace
 
 from rpa_plugin_skill.core.config import AppConfig
 from rpa_plugin_skill.core.database_lifecycle import layer_a_db_name
+from rpa_plugin_skill.core.nl_rule_codegen import RuleValidationError
 from rpa_plugin_skill.core.rule_service import (
     archive_rule_for_source,
     delete_rule_for_source,
     list_rules_for_source,
     upsert_rule_for_source,
+    upsert_rule_from_nl_for_source,
 )
 from rpa_plugin_skill.core.sql_registration_service import register_sql_source
 from rpa_plugin_skill.core.typedb_bootstrap import connect_with_retry
@@ -84,6 +86,21 @@ class RuleServiceIntegrationTests(unittest.TestCase):
         delete_rule_for_source(self.cfg, self.registration_id, "FP-R01")
         listed_after_delete = list_rules_for_source(self.cfg, self.registration_id)
         self.assertEqual(listed_after_delete, [])
+
+
+class RuleServiceValidationTests(unittest.TestCase):
+    def test_invalid_nl_rule_is_blocked_before_db_write(self) -> None:
+        cfg = AppConfig.from_env()
+        with self.assertRaises(RuleValidationError) as ctx:
+            upsert_rule_from_nl_for_source(
+                config=cfg,
+                registration_id="sql-rules-alpha",
+                rule_id="FP-RX",
+                rule_name="Invalid Rule",
+                nl_text="deny if concentration high",
+                status="draft",
+            )
+        self.assertIn("Rule must match", str(ctx.exception))
 
 
 if __name__ == "__main__":

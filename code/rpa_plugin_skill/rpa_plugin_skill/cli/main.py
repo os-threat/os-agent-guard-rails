@@ -11,6 +11,7 @@ from rpa_plugin_skill.core.database_lifecycle import (
     list_databases,
 )
 from rpa_plugin_skill.core.health import probe_typedb
+from rpa_plugin_skill.core.nl_rule_codegen import RuleValidationError
 from rpa_plugin_skill.core.openapi_registration_service import register_api_source
 from rpa_plugin_skill.core.rule_composer import compose_rule_preview
 from rpa_plugin_skill.core.rule_service import (
@@ -18,6 +19,7 @@ from rpa_plugin_skill.core.rule_service import (
     delete_rule_for_source,
     list_rules_for_source,
     upsert_rule_for_source,
+    upsert_rule_from_nl_for_source,
 )
 from rpa_plugin_skill.core.sql_registration_service import (
     list_registered_sources,
@@ -122,6 +124,11 @@ def main() -> int:
         "--rule-upsert",
         action="store_true",
         help="Upsert rule metadata and associated Layer A logic.",
+    )
+    parser.add_argument(
+        "--rule-codegen-from-nl",
+        action="store_true",
+        help="Generate Horn AST/TypeQL fun from --rule-nl before upsert.",
     )
     parser.add_argument(
         "--rule-archive",
@@ -244,31 +251,57 @@ def main() -> int:
         print(f"[rpa_plugin_skill] RULES source={args.rule_source} docs={docs}")
 
     if args.rule_upsert:
-        required = [
-            args.rule_source,
-            args.rule_id,
-            args.rule_name,
-            args.rule_nl,
-            args.rule_horn,
-            args.rule_typeql,
-            args.rule_ast_ref,
-        ]
-        if not all(required):
-            raise SystemExit(
-                "--rule-upsert requires --rule-source --rule-id --rule-name --rule-nl "
-                "--rule-horn --rule-typeql --rule-ast-ref"
-            )
-        preview = upsert_rule_for_source(
-            config=config,
-            registration_id=args.rule_source,
-            rule_id=args.rule_id,
-            rule_name=args.rule_name,
-            nl_text=args.rule_nl,
-            horn_text=args.rule_horn,
-            typeql_fun=args.rule_typeql,
-            ast_ref=args.rule_ast_ref,
-            status=args.rule_status,
-        )
+        try:
+            if args.rule_codegen_from_nl:
+                required_codegen = [
+                    args.rule_source,
+                    args.rule_id,
+                    args.rule_name,
+                    args.rule_nl,
+                ]
+                if not all(required_codegen):
+                    raise SystemExit(
+                        "--rule-upsert --rule-codegen-from-nl requires "
+                        "--rule-source --rule-id --rule-name --rule-nl"
+                    )
+                preview = upsert_rule_from_nl_for_source(
+                    config=config,
+                    registration_id=args.rule_source,
+                    rule_id=args.rule_id,
+                    rule_name=args.rule_name,
+                    nl_text=args.rule_nl,
+                    status=args.rule_status,
+                )
+            else:
+                required_manual = [
+                    args.rule_source,
+                    args.rule_id,
+                    args.rule_name,
+                    args.rule_nl,
+                    args.rule_horn,
+                    args.rule_typeql,
+                    args.rule_ast_ref,
+                ]
+                if not all(required_manual):
+                    raise SystemExit(
+                        "--rule-upsert requires --rule-source --rule-id --rule-name --rule-nl "
+                        "--rule-horn --rule-typeql --rule-ast-ref "
+                        "(or use --rule-codegen-from-nl)"
+                    )
+                preview = upsert_rule_for_source(
+                    config=config,
+                    registration_id=args.rule_source,
+                    rule_id=args.rule_id,
+                    rule_name=args.rule_name,
+                    nl_text=args.rule_nl,
+                    horn_text=args.rule_horn,
+                    typeql_fun=args.rule_typeql,
+                    ast_ref=args.rule_ast_ref,
+                    status=args.rule_status,
+                )
+        except RuleValidationError as exc:
+            raise SystemExit(f"Invalid rule: {exc}") from exc
+
         print(
             "[rpa_plugin_skill] RULE_UPSERT "
             f"source={preview.registration_id} rule_id={preview.rule_id} "
@@ -301,11 +334,14 @@ def main() -> int:
             raise SystemExit(
                 "--rule-compose-preview requires --rule-id --rule-name --rule-nl"
             )
-        preview = compose_rule_preview(
-            rule_id=args.rule_id,
-            rule_name=args.rule_name,
-            nl_text=args.rule_nl,
-        )
+        try:
+            preview = compose_rule_preview(
+                rule_id=args.rule_id,
+                rule_name=args.rule_name,
+                nl_text=args.rule_nl,
+            )
+        except RuleValidationError as exc:
+            raise SystemExit(f"Invalid rule: {exc}") from exc
         payload = {
             "nl_left": preview.nl_text,
             "logic_tab": {
@@ -317,6 +353,7 @@ def main() -> int:
                 "function_label": preview.typeql_tab.function_label,
                 "function_define_query": preview.typeql_tab.function_define_query,
             },
+            "ast_ref": preview.ast_ref,
         }
         rendered = json.dumps(payload, ensure_ascii=True)
         print(f"[rpa_plugin_skill] RULE_COMPOSER {rendered}")

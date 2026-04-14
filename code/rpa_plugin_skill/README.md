@@ -24,6 +24,7 @@ code/rpa_plugin_skill/
     manual_api_registration_check.md
     rule_crud_semantics.md
     rule_composer_ui.md
+    nl_to_horn_codegen.md
   rpa_plugin_skill/
     __main__.py
     cli/main.py
@@ -42,6 +43,7 @@ code/rpa_plugin_skill/
     core/openapi_registration_service.py
     core/rule_service.py
     core/rule_composer.py
+    core/nl_rule_codegen.py
   schema/layer_c/
     manifest.json
     MIGRATIONS.md
@@ -66,6 +68,8 @@ code/rpa_plugin_skill/
   tests/test_openapi_registration_service.py
   tests/test_rule_service.py
   tests/test_rule_composer.py
+  tests/test_nl_rule_codegen.py
+  tests/fixtures/rule_ast/
   tests/golden/sql_to_typeql_sample.tql
   tests/golden/openapi_to_typeql_sample.tql
   dev/docker-compose.yml
@@ -102,6 +106,7 @@ npm run sql:list:sources
 npm run api:register:example
 npm run rule:list:example
 npm run rule:compose:example
+npm run rule:codegen:example
 npm run rule:archive:example
 npm run layerc:migrate
 npm run layerb:migrate
@@ -131,7 +136,8 @@ npm run format
 | **5.2** OpenAPI -> TypeQL transpiler | [#52](https://github.com/os-threat/os-agent-guard-rails/issues/52) (closed) |
 | **5.3** API register flow | [#53](https://github.com/os-threat/os-agent-guard-rails/issues/53) (closed) |
 | **6.1** Rule list CRUD | [#54](https://github.com/os-threat/os-agent-guard-rails/issues/54) (closed) |
-| **6.2** Rules composer UI | [#55](https://github.com/os-threat/os-agent-guard-rails/issues/55) |
+| **6.2** Rules composer UI | [#55](https://github.com/os-threat/os-agent-guard-rails/issues/55) (closed) |
+| **6.3** NL -> Horn AST -> TypeQL fun codegen | [#56](https://github.com/os-threat/os-agent-guard-rails/issues/56) |
 
 
 
