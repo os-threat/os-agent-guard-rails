@@ -42,6 +42,10 @@ from rpa_plugin_skill.core.task_plan_loader import (
     TaskPlanError,
     prepare_task_for_schedule,
 )
+from rpa_plugin_skill.core.task_schedule_service import (
+    list_task_schedules,
+    upsert_task_schedule,
+)
 
 
 def main() -> int:
@@ -190,6 +194,40 @@ def main() -> int:
             "Convert task description into SQL/API extract plan, load Layer A, "
             "and mark task ready to schedule."
         ),
+    )
+    parser.add_argument("--task-schedule-id", metavar="SCHEDULE_ID", help="Schedule id.")
+    parser.add_argument(
+        "--task-schedule-mode",
+        metavar="MODE",
+        default="cron",
+        help="Schedule mode: once|datetime|cron (default: cron).",
+    )
+    parser.add_argument(
+        "--task-cron",
+        metavar="CRON",
+        default="",
+        help="Cron expression for task schedule intent.",
+    )
+    parser.add_argument(
+        "--task-openclaw-job-ref",
+        metavar="JOB_REF",
+        default="",
+        help="OpenClaw cron/service job reference.",
+    )
+    parser.add_argument(
+        "--task-schedule-enabled",
+        action="store_true",
+        help="Enable the persisted task schedule.",
+    )
+    parser.add_argument(
+        "--task-schedule-upsert",
+        action="store_true",
+        help="Persist schedule intent in Layer C (OpenClaw executes externally).",
+    )
+    parser.add_argument(
+        "--task-schedule-list",
+        action="store_true",
+        help="List task schedules for --task-source.",
     )
     parser.add_argument(
         "--guard-mcp-source",
@@ -604,6 +642,37 @@ def main() -> int:
             f"status={preview.task_status} rows_loaded={preview.rows_loaded} "
             f"plan={preview.plan_summary}"
         )
+
+    if args.task_schedule_upsert:
+        required = [args.task_source, args.task_id, args.task_schedule_id]
+        if not all(required):
+            raise SystemExit(
+                "--task-schedule-upsert requires --task-source --task-id "
+                "--task-schedule-id"
+            )
+        preview = upsert_task_schedule(
+            config=config,
+            registration_id=args.task_source,
+            task_id=args.task_id,
+            schedule_id=args.task_schedule_id,
+            mode=args.task_schedule_mode,
+            cron_expression=args.task_cron,
+            openclaw_job_ref=args.task_openclaw_job_ref,
+            enabled=args.task_schedule_enabled,
+        )
+        print(
+            "[rpa_plugin_skill] TASK_SCHEDULE_INTENT "
+            f"source={preview.registration_id} task_id={preview.task_id} "
+            f"schedule_id={preview.schedule_id} mode={preview.schedule_mode} "
+            f"cron={preview.cron_expression} enabled={preview.schedule_enabled} "
+            f"job_ref={preview.openclaw_job_ref}"
+        )
+
+    if args.task_schedule_list:
+        if not args.task_source:
+            raise SystemExit("--task-schedule-list requires --task-source")
+        docs = list_task_schedules(config, args.task_source)
+        print(f"[rpa_plugin_skill] TASK_SCHEDULES source={args.task_source} docs={docs}")
 
     if args.guard_mcp_refresh or args.guard_mcp_list_tools:
         if not args.guard_mcp_source:

@@ -410,3 +410,79 @@ fetch {{
                 return list(answer.as_concept_documents())
         finally:
             driver.close()
+
+    def upsert_task_schedule(
+        self,
+        task_id: str,
+        schedule_id: str,
+        mode: str,
+        cron_expression: str,
+        openclaw_job_ref: str,
+        enabled: bool,
+        schedule_at_iso: str | None = None,
+    ) -> None:
+        driver = connect_with_retry(self.config)
+        try:
+            with driver.transaction(self.config.layer_c_db, TransactionType.WRITE) as tx:
+                tx.query(
+                    f'''match
+  $existing isa gr_task_schedule, has gr_schedule_id "{schedule_id}";
+delete
+  $existing;'''
+                ).resolve()
+                tx.query(
+                    f'''put
+  $schedule isa gr_task_schedule,
+    has gr_schedule_id "{schedule_id}",
+    has gr_schedule_mode "{mode}",
+    has gr_cron_expression "{cron_expression}",
+    has gr_openclaw_job_ref "{openclaw_job_ref}",
+    has gr_schedule_enabled {str(enabled).lower()};'''
+                ).resolve()
+                if schedule_at_iso:
+                    tx.query(
+                        f'''match
+  $schedule isa gr_task_schedule, has gr_schedule_id "{schedule_id}";
+insert
+  $schedule has gr_schedule_at {schedule_at_iso};'''
+                    ).resolve()
+                tx.query(
+                    f'''match
+  $task isa gr_task_definition, has gr_task_id "{task_id}";
+  $schedule isa gr_task_schedule, has gr_schedule_id "{schedule_id}";
+put
+  (task: $task, schedule: $schedule) isa gr_task_schedule_binding;'''
+                ).resolve()
+                tx.commit()
+        finally:
+            driver.close()
+
+    def fetch_task_schedules_for_source(self, registration_id: str) -> list[dict]:
+        driver = connect_with_retry(self.config)
+        try:
+            with driver.transaction(self.config.layer_c_db, TransactionType.READ) as tx:
+                answer = tx.query(
+                    f'''match
+  $source isa gr_registered_source, has gr_registration_id "{registration_id}";
+  (source: $source, task: $task) isa gr_source_task_binding;
+  (task: $task, schedule: $schedule) isa gr_task_schedule_binding;
+  $task has gr_task_id $task_id;
+  $schedule has gr_schedule_id $schedule_id,
+    has gr_schedule_mode $mode,
+    has gr_cron_expression $cron,
+    has gr_openclaw_job_ref $job_ref,
+    has gr_schedule_enabled $enabled;
+fetch {{
+  "task_id": $task_id,
+  "schedule_id": $schedule_id,
+  "schedule_mode": $mode,
+  "cron_expression": $cron,
+  "openclaw_job_ref": $job_ref,
+  "schedule_enabled": $enabled
+}};'''
+                ).resolve()
+                if not answer.is_concept_documents():
+                    return []
+                return list(answer.as_concept_documents())
+        finally:
+            driver.close()

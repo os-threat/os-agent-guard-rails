@@ -16,6 +16,8 @@
     "rule:compose:example": "python -m rpa_plugin_skill --rule-compose-preview --rule-id FP-R01 --rule-name \"Diversification threshold\" --rule-nl \"If concentration is high then deny else allow\"",
     "task:compose:example": "python -m rpa_plugin_skill --task-compose-preview --task-source sql-medical-alpha --task-description \"Extract clients, validate status, and schedule review tasks\"",
     "task:prepare:example": "python -m rpa_plugin_skill --task-prepare-load --task-source sql-medical-alpha --task-id task-001 --task-name \"Client extraction\" --task-description \"Extract clients and validate status before review\"",
+    "task:schedule:example": "python -m rpa_plugin_skill --task-schedule-upsert --task-source sql-medical-alpha --task-id task-001 --task-schedule-id sched-001 --task-schedule-mode cron --task-cron \"0 7 * * *\" --task-openclaw-job-ref openclaw-job-001 --task-schedule-enabled",
+    "task:schedule:list:example": "python -m rpa_plugin_skill --task-schedule-list --task-source sql-medical-alpha",
     "rule:codegen:example": "python -m rpa_plugin_skill --rule-upsert --rule-codegen-from-nl --rule-source sql-medical-alpha --rule-id FP-R01 --rule-name \"Diversification threshold\" --rule-nl \"If concentration is high then deny else allow\" --rule-status active",
     "rule:archive:example": "python -m rpa_plugin_skill --rule-archive --rule-source sql-medical-alpha --rule-id FP-R01",
     "guard:mcp:list:example": "python -m rpa_plugin_skill --guard-mcp-list-tools --guard-mcp-source sql-medical-alpha",

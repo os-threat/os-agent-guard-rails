@@ -144,6 +144,21 @@ class LayerCStoreIntegrationTests(unittest.TestCase):
         self.assertIn("Extract updated records", rendered)
         self.assertIn("scheduled", rendered)
 
+        store.upsert_task_schedule(
+            task_id="task-001",
+            schedule_id="sched-001",
+            mode="cron",
+            cron_expression="0 7 * * *",
+            openclaw_job_ref="openclaw-job-001",
+            enabled=True,
+        )
+        schedules = store.fetch_task_schedules_for_source("reg-task-1")
+        self.assertEqual(len(schedules), 1)
+        schedule_rendered = str(schedules[0])
+        self.assertIn("sched-001", schedule_rendered)
+        self.assertIn("openclaw-job-001", schedule_rendered)
+        self.assertIn("0 7 * * *", schedule_rendered)
+
         store.delete_task(registration_id="reg-task-1", task_id="task-001")
         self.assertEqual(store.fetch_tasks_for_source("reg-task-1"), [])
 
