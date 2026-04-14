@@ -173,6 +173,12 @@ delete
         try:
             with driver.transaction(self.config.layer_c_db, TransactionType.WRITE) as tx:
                 tx.query(
+                    f'''match
+  $task isa gr_task_definition, has gr_task_id "{task_id}";
+delete
+  $task;'''
+                ).resolve()
+                tx.query(
                     f'''put
   $task isa gr_task_definition,
     has gr_task_id "{task_id}",
@@ -187,6 +193,46 @@ delete
   $task isa gr_task_definition, has gr_task_id "{task_id}";
 put
   (source: $source, task: $task) isa gr_source_task_binding;'''
+                ).resolve()
+                tx.commit()
+        finally:
+            driver.close()
+
+    def set_task_status(self, task_id: str, status: str) -> None:
+        driver = connect_with_retry(self.config)
+        try:
+            with driver.transaction(self.config.layer_c_db, TransactionType.WRITE) as tx:
+                tx.query(
+                    f'''match
+  $task isa gr_task_definition,
+    has gr_task_id "{task_id}",
+    has gr_task_status $old;
+delete
+  $task has $old;
+insert
+  $task has gr_task_status "{status}";'''
+                ).resolve()
+                tx.commit()
+        finally:
+            driver.close()
+
+    def delete_task(self, registration_id: str, task_id: str) -> None:
+        driver = connect_with_retry(self.config)
+        try:
+            with driver.transaction(self.config.layer_c_db, TransactionType.WRITE) as tx:
+                tx.query(
+                    f'''match
+  $source isa gr_registered_source, has gr_registration_id "{registration_id}";
+  $task isa gr_task_definition, has gr_task_id "{task_id}";
+  $binding (source: $source, task: $task) isa gr_source_task_binding;
+delete
+  $binding;'''
+                ).resolve()
+                tx.query(
+                    f'''match
+  $task isa gr_task_definition, has gr_task_id "{task_id}";
+delete
+  $task;'''
                 ).resolve()
                 tx.commit()
         finally:
@@ -299,6 +345,33 @@ fetch {{
   "rule_typeql_fun": $typeql,
   "rule_ast_ref": $ast,
   "rule_status": $status
+}};'''
+                ).resolve()
+                if not answer.is_concept_documents():
+                    return []
+                return list(answer.as_concept_documents())
+        finally:
+            driver.close()
+
+    def fetch_tasks_for_source(self, registration_id: str) -> list[dict]:
+        driver = connect_with_retry(self.config)
+        try:
+            with driver.transaction(self.config.layer_c_db, TransactionType.READ) as tx:
+                answer = tx.query(
+                    f'''match
+  $source isa gr_registered_source, has gr_registration_id "{registration_id}";
+  $binding (source: $source, task: $task) isa gr_source_task_binding;
+  $task has gr_task_id $id,
+    has gr_task_name $name,
+    has gr_task_description $description,
+    has gr_extract_plan_ref $extract_plan_ref,
+    has gr_task_status $status;
+fetch {{
+  "task_id": $id,
+  "task_name": $name,
+  "task_description": $description,
+  "extract_plan_ref": $extract_plan_ref,
+  "task_status": $status
 }};'''
                 ).resolve()
                 if not answer.is_concept_documents():

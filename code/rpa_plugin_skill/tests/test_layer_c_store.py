@@ -99,6 +99,50 @@ class LayerCStoreIntegrationTests(unittest.TestCase):
         value = store.fetch_setting("sync:reg-1:last_sync_error")
         self.assertEqual(value, "boom")
 
+    def test_task_crud_for_registration_scope(self) -> None:
+        store = LayerCStore(self.cfg, ensure_schema=True)
+        store.upsert_registered_source(
+            RegisteredSourceInput(
+                registration_id="reg-task-1",
+                source_name="Task Source",
+                source_kind="sql",
+                source_url="postgres://task-db",
+                source_description="task source",
+                source_is_active=True,
+                credential_ref_id="cred-task-1",
+                secret_provider="vault",
+                secret_ref="vault://prod/task/sql-creds",
+            )
+        )
+
+        store.upsert_task(
+            registration_id="reg-task-1",
+            task_id="task-001",
+            task_name="Extract baseline records",
+            task_description="Load baseline entities",
+            extract_plan_ref="plan://extract/001",
+            status="draft",
+        )
+        store.upsert_task(
+            registration_id="reg-task-1",
+            task_id="task-001",
+            task_name="Extract updated records",
+            task_description="Load changed entities",
+            extract_plan_ref="plan://extract/002",
+            status="ready",
+        )
+        store.set_task_status("task-001", "scheduled")
+
+        tasks = store.fetch_tasks_for_source("reg-task-1")
+        self.assertEqual(len(tasks), 1)
+        rendered = str(tasks[0])
+        self.assertIn("task-001", rendered)
+        self.assertIn("Extract updated records", rendered)
+        self.assertIn("scheduled", rendered)
+
+        store.delete_task(registration_id="reg-task-1", task_id="task-001")
+        self.assertEqual(store.fetch_tasks_for_source("reg-task-1"), [])
+
 
 if __name__ == "__main__":
     unittest.main()

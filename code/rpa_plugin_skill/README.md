@@ -33,6 +33,7 @@ code/rpa_plugin_skill/
     guard_mcp_tools.md
     promise_mcp_tools.md
     correlation_trace.md
+    task_crud_semantics.md
   rpa_plugin_skill/
     __main__.py
     cli/main.py
@@ -179,7 +180,8 @@ npm run format
 | **8.1** MCP scaffold + namespaces | [#61](https://github.com/os-threat/os-agent-guard-rails/issues/61) (closed) |
 | **8.2** Guard MCP dynamic tools | [#62](https://github.com/os-threat/os-agent-guard-rails/issues/62) (closed) |
 | **9.1** Promise MCP tools | [#63](https://github.com/os-threat/os-agent-guard-rails/issues/63) (closed) |
-| **9.2** Guard/assessment correlation | [#64](https://github.com/os-threat/os-agent-guard-rails/issues/64) |
+| **9.2** Guard/assessment correlation | [#64](https://github.com/os-threat/os-agent-guard-rails/issues/64) (closed) |
+| **10.1** Task list CRUD | [#65](https://github.com/os-threat/os-agent-guard-rails/issues/65) |
 
 
 
