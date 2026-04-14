@@ -8,6 +8,7 @@ from .database_lifecycle import layer_a_db_name
 from .layer_c_store import LayerCStore, RegisteredSourceInput
 from .sql_ddl_ingest import load_ddl_text, parse_postgres_ddl
 from .sql_to_typeql import apply_layer_a_schema, generate_define_from_ddl
+from .sync_trigger_service import trigger_post_registration_sync
 
 
 @dataclass(frozen=True)
@@ -61,6 +62,7 @@ def register_sql_source(
         )
     )
     store.upsert_setting("active_registration_id", reg_id)
+    trigger_post_registration_sync(config, reg_id, source_kind="sql")
 
     return RegistrationPreview(
         registration_id=reg_id,

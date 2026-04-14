@@ -227,6 +227,29 @@ delete
         finally:
             driver.close()
 
+    def fetch_setting(self, key: str) -> str | None:
+        driver = connect_with_retry(self.config)
+        try:
+            with driver.transaction(self.config.layer_c_db, TransactionType.READ) as tx:
+                answer = tx.query(
+                    f'''match
+  $setting isa gr_setting,
+    has gr_setting_key "{key}",
+    has gr_setting_value $value;
+fetch {{
+  "value": $value
+}};'''
+                ).resolve()
+                if not answer.is_concept_documents():
+                    return None
+                docs = list(answer.as_concept_documents())
+                if not docs:
+                    return None
+                raw = docs[0].get("value")
+                return str(raw) if raw is not None else None
+        finally:
+            driver.close()
+
     def fetch_registered_sources(self) -> list[dict]:
         driver = connect_with_retry(self.config)
         try:

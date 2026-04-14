@@ -19,6 +19,8 @@
     "guard:mcp:list:example": "python -m rpa_plugin_skill --guard-mcp-list-tools --guard-mcp-source sql-medical-alpha",
     "sync:sql:example": "python -m rpa_plugin_skill --sync-sql-source sql-medical-alpha --sync-sql-dsn postgresql://medical_app:medical_app_dev_pw@localhost:5433/medical_mini_app --sync-sql-query \"SELECT 1001::int AS id, 'Sync Doctor'::text AS name\" --sync-sql-table doctors",
     "sync:rest:example": "python -m rpa_plugin_skill --sync-rest-source api-financial-main --sync-rest-base-url http://localhost:4010 --sync-rest-path /clients --sync-rest-method GET --sync-rest-target-entity gra_client --sync-rest-records-key data --sync-rest-pagination next_link --sync-rest-max-pages 5 --sync-rest-rate-limit-ms 250",
+    "sync:status:example": "python -m rpa_plugin_skill --sync-status-source sql-medical-alpha",
+    "sync:task:finalize:example": "python -m rpa_plugin_skill --sync-task-finalize-source sql-medical-alpha --sync-task-finalize-task-id task-001",
     "layerc:migrate": "python -m scripts.migrate_layer_c",
     "layerb:migrate": "python -m scripts.migrate_layer_b",
     "layerb:contract": "python -m scripts.check_layer_b_contract",

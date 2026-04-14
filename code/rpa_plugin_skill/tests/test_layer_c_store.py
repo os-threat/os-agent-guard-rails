@@ -93,6 +93,12 @@ class LayerCStoreIntegrationTests(unittest.TestCase):
         self.assertIn("reg-1", rendered)
         self.assertIn("Medical SQL", rendered)
 
+    def test_upsert_and_fetch_setting(self) -> None:
+        store = LayerCStore(self.cfg, ensure_schema=True)
+        store.upsert_setting("sync:reg-1:last_sync_error", "boom")
+        value = store.fetch_setting("sync:reg-1:last_sync_error")
+        self.assertEqual(value, "boom")
+
 
 if __name__ == "__main__":
     unittest.main()

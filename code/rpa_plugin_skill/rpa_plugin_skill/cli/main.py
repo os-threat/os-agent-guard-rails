@@ -15,7 +15,7 @@ from rpa_plugin_skill.core.health import probe_typedb
 from rpa_plugin_skill.core.nl_rule_codegen import RuleValidationError
 from rpa_plugin_skill.core.openapi_registration_service import register_api_source
 from rpa_plugin_skill.core.openapi_to_typeql import ExtractBundle
-from rpa_plugin_skill.core.rest_sync_worker import RestSyncPlan, sync_rest_bundle_to_layer_a
+from rpa_plugin_skill.core.rest_sync_worker import RestSyncPlan
 from rpa_plugin_skill.core.rule_composer import compose_rule_preview
 from rpa_plugin_skill.core.rule_service import (
     archive_rule_for_source,
@@ -29,7 +29,13 @@ from rpa_plugin_skill.core.sql_registration_service import (
     register_sql_source,
     set_active_registration,
 )
-from rpa_plugin_skill.core.sql_sync_worker import SqlSyncPlan, sync_sql_rows_to_layer_a
+from rpa_plugin_skill.core.sql_sync_worker import SqlSyncPlan
+from rpa_plugin_skill.core.sync_trigger_service import (
+    get_sync_status,
+    trigger_manual_rest_sync,
+    trigger_manual_sql_sync,
+    trigger_post_task_finalize_sync,
+)
 
 
 def main() -> int:
@@ -249,6 +255,21 @@ def main() -> int:
         type=int,
         default=0,
         help="Sleep between paged requests in milliseconds (default: 0).",
+    )
+    parser.add_argument(
+        "--sync-status-source",
+        metavar="REG_ID",
+        help="Show last sync status for registration id (time/error/rows/trigger).",
+    )
+    parser.add_argument(
+        "--sync-task-finalize-source",
+        metavar="REG_ID",
+        help="Registration id for post-task-finalize sync trigger hook.",
+    )
+    parser.add_argument(
+        "--sync-task-finalize-task-id",
+        metavar="TASK_ID",
+        help="Task id used for post-task-finalize sync trigger hook.",
     )
     args = parser.parse_args()
 
@@ -497,11 +518,11 @@ def main() -> int:
             watermark_column=args.sync_watermark_column,
             watermark_gt=args.sync_watermark_gt,
         )
-        result = sync_sql_rows_to_layer_a(config, plan)
+        status = trigger_manual_sql_sync(config, plan)
         print(
             "[rpa_plugin_skill] SQL_SYNC "
-            f"source={result.registration_id} layer_a_db={result.layer_a_db} "
-            f"rows_synced={result.rows_synced} watermark_max={result.watermark_max}"
+            f"source={status.registration_id} rows_synced={status.last_sync_rows} "
+            f"last_time={status.last_sync_time} error={status.last_sync_error}"
         )
 
     if (
@@ -539,11 +560,37 @@ def main() -> int:
             max_pages=args.sync_rest_max_pages,
             rate_limit_sleep_ms=args.sync_rest_rate_limit_ms,
         )
-        result = sync_rest_bundle_to_layer_a(config, plan)
+        status = trigger_manual_rest_sync(config, plan)
         print(
             "[rpa_plugin_skill] REST_SYNC "
-            f"source={result.registration_id} layer_a_db={result.layer_a_db} "
-            f"pages={result.pages_fetched} rows_synced={result.rows_synced}"
+            f"source={status.registration_id} rows_synced={status.last_sync_rows} "
+            f"last_time={status.last_sync_time} error={status.last_sync_error}"
+        )
+
+    if args.sync_task_finalize_source or args.sync_task_finalize_task_id:
+        if not (args.sync_task_finalize_source and args.sync_task_finalize_task_id):
+            raise SystemExit(
+                "--sync-task-finalize-source and --sync-task-finalize-task-id "
+                "must be provided together"
+            )
+        status = trigger_post_task_finalize_sync(
+            config=config,
+            registration_id=args.sync_task_finalize_source,
+            task_id=args.sync_task_finalize_task_id,
+        )
+        print(
+            "[rpa_plugin_skill] SYNC_TASK_FINALIZE "
+            f"source={status.registration_id} trigger={status.last_sync_trigger} "
+            f"last_time={status.last_sync_time}"
+        )
+
+    if args.sync_status_source:
+        status = get_sync_status(config, args.sync_status_source)
+        print(
+            "[rpa_plugin_skill] SYNC_STATUS "
+            f"source={status.registration_id} last_time={status.last_sync_time} "
+            f"last_error={status.last_sync_error} last_rows={status.last_sync_rows} "
+            f"last_trigger={status.last_sync_trigger}"
         )
 
     if args.list_databases:

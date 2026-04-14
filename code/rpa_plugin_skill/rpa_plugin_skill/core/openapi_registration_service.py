@@ -8,6 +8,7 @@ from .database_lifecycle import layer_a_db_name
 from .layer_c_store import LayerCStore, RegisteredSourceInput
 from .openapi_ingest import load_openapi_text, parse_openapi_document
 from .openapi_to_typeql import apply_openapi_layer_a_schema, build_extract_bundles
+from .sync_trigger_service import trigger_post_registration_sync
 
 
 @dataclass(frozen=True)
@@ -64,6 +65,7 @@ def register_api_source(
         )
     )
     store.upsert_setting("active_registration_id", reg_id)
+    trigger_post_registration_sync(config, reg_id, source_kind="api")
 
     return ApiRegistrationPreview(
         registration_id=reg_id,
