@@ -27,6 +27,12 @@ class _FakeGuardRegistry:
     def list_tools(self) -> tuple[GuardToolDescriptor, ...]:
         return self._tools
 
+    def get_tool(self, name: str) -> GuardToolDescriptor | None:
+        for tool in self._tools:
+            if tool.name == name:
+                return tool
+        return None
+
 
 class McpServerScaffoldTests(unittest.TestCase):
     def test_lists_guard_and_promise_namespaces(self) -> None:
@@ -59,6 +65,15 @@ class McpServerScaffoldTests(unittest.TestCase):
         tools = server.list_tools("guard")
         self.assertEqual(len(tools), 1)
         self.assertEqual(tools[0].name, "guard.gr_guard_fp_r01")
+
+    def test_guard_contract_list_matches_fun_set_after_reload(self) -> None:
+        cfg = AppConfig.from_env()
+        fake_registry = _FakeGuardRegistry()
+        server = PluginMcpServer(cfg, guard_registry=fake_registry)  # type: ignore[arg-type]
+        server.set_guard_source("sql-medical-alpha")
+
+        names = {tool.name for tool in server.list_tools("guard")}
+        self.assertEqual(names, {"guard.gr_guard_fp_r01"})
 
 
 if __name__ == "__main__":

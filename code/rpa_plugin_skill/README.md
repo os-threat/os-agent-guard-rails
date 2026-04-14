@@ -30,6 +30,7 @@ code/rpa_plugin_skill/
     rest_sync_worker.md
     sync_triggers.md
     mcp_server_scaffold.md
+    guard_mcp_tools.md
   rpa_plugin_skill/
     __main__.py
     cli/main.py
@@ -84,6 +85,7 @@ code/rpa_plugin_skill/
   tests/test_rest_sync_worker.py
   tests/test_sync_trigger_service.py
   tests/test_mcp_server.py
+  tests/test_guard_mcp_invoke.py
   tests/fixtures/rule_ast/
   tests/golden/sql_to_typeql_sample.tql
   tests/golden/openapi_to_typeql_sample.tql
@@ -131,6 +133,8 @@ npm run sync:task:finalize:example
 npm run mcp:namespaces:example
 npm run mcp:promise:tools:example
 npm run mcp:guard:tools:example
+npm run mcp:guard:introspect:example
+npm run mcp:guard:invoke:example
 npm run layerc:migrate
 npm run layerb:migrate
 npm run layerb:contract
@@ -165,7 +169,8 @@ npm run format
 | **7.1** SQL sync worker | [#58](https://github.com/os-threat/os-agent-guard-rails/issues/58) (closed) |
 | **7.2** REST sync worker | [#59](https://github.com/os-threat/os-agent-guard-rails/issues/59) (closed) |
 | **7.3** Sync triggers + status | [#60](https://github.com/os-threat/os-agent-guard-rails/issues/60) (closed) |
-| **8.1** MCP scaffold + namespaces | [#61](https://github.com/os-threat/os-agent-guard-rails/issues/61) |
+| **8.1** MCP scaffold + namespaces | [#61](https://github.com/os-threat/os-agent-guard-rails/issues/61) (closed) |
+| **8.2** Guard MCP dynamic tools | [#62](https://github.com/os-threat/os-agent-guard-rails/issues/62) |
 
 
 

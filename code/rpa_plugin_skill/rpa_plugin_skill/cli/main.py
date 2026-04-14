@@ -287,6 +287,21 @@ def main() -> int:
         metavar="REG_ID",
         help="Optional guard registration id used to refresh guard namespace tools.",
     )
+    parser.add_argument(
+        "--mcp-guard-invoke-tool",
+        metavar="TOOL",
+        help="Invoke a guard MCP tool (example: guard.gr_guard_fp_r01).",
+    )
+    parser.add_argument(
+        "--mcp-guard-subject-key",
+        metavar="KEY",
+        help="Subject key for guard tool invocation.",
+    )
+    parser.add_argument(
+        "--mcp-guard-introspect-tool",
+        metavar="TOOL",
+        help="Show data-trace introspection for a guard tool.",
+    )
     args = parser.parse_args()
 
     config = AppConfig.from_env()
@@ -609,7 +624,12 @@ def main() -> int:
             f"last_trigger={status.last_sync_trigger}"
         )
 
-    if args.mcp_list_namespaces or args.mcp_list_tools_namespace:
+    if (
+        args.mcp_list_namespaces
+        or args.mcp_list_tools_namespace
+        or args.mcp_guard_invoke_tool
+        or args.mcp_guard_introspect_tool
+    ):
         server = PluginMcpServer(config)
         if args.mcp_guard_source:
             generation = server.set_guard_source(args.mcp_guard_source)
@@ -626,6 +646,32 @@ def main() -> int:
             print(
                 "[rpa_plugin_skill] MCP_NAMESPACE_TOOLS "
                 f"namespace={args.mcp_list_tools_namespace} tools={rendered}"
+            )
+        if args.mcp_guard_invoke_tool:
+            if not (args.mcp_guard_source and args.mcp_guard_subject_key):
+                raise SystemExit(
+                    "--mcp-guard-invoke-tool requires --mcp-guard-source and "
+                    "--mcp-guard-subject-key"
+                )
+            result = server.invoke_guard_tool(
+                args.mcp_guard_invoke_tool,
+                args.mcp_guard_subject_key,
+            )
+            print(
+                "[rpa_plugin_skill] MCP_GUARD_INVOKE "
+                f"tool={result.tool_name} decision={result.decision} "
+                f"trace={json.dumps(result.data_trace, ensure_ascii=True)}"
+            )
+        if args.mcp_guard_introspect_tool:
+            if not args.mcp_guard_source:
+                raise SystemExit(
+                    "--mcp-guard-introspect-tool requires --mcp-guard-source"
+                )
+            trace = server.introspect_guard_tool(args.mcp_guard_introspect_tool)
+            print(
+                "[rpa_plugin_skill] MCP_GUARD_INTROSPECT "
+                f"tool={args.mcp_guard_introspect_tool} "
+                f"trace={json.dumps(trace, ensure_ascii=True)}"
             )
 
     if args.list_databases:
