@@ -12,6 +12,7 @@ from rpa_plugin_skill.core.database_lifecycle import (
 )
 from rpa_plugin_skill.core.guard_mcp_registry import GuardMcpRegistry
 from rpa_plugin_skill.core.health import probe_typedb
+from rpa_plugin_skill.core.mcp_server import PluginMcpServer
 from rpa_plugin_skill.core.nl_rule_codegen import RuleValidationError
 from rpa_plugin_skill.core.openapi_registration_service import register_api_source
 from rpa_plugin_skill.core.openapi_to_typeql import ExtractBundle
@@ -270,6 +271,21 @@ def main() -> int:
         "--sync-task-finalize-task-id",
         metavar="TASK_ID",
         help="Task id used for post-task-finalize sync trigger hook.",
+    )
+    parser.add_argument(
+        "--mcp-list-namespaces",
+        action="store_true",
+        help="List MCP namespaces exposed by the long-lived plugin server scaffold.",
+    )
+    parser.add_argument(
+        "--mcp-list-tools-namespace",
+        metavar="NAMESPACE",
+        help="List tools for a given MCP namespace (guard|promise).",
+    )
+    parser.add_argument(
+        "--mcp-guard-source",
+        metavar="REG_ID",
+        help="Optional guard registration id used to refresh guard namespace tools.",
     )
     args = parser.parse_args()
 
@@ -592,6 +608,25 @@ def main() -> int:
             f"last_error={status.last_sync_error} last_rows={status.last_sync_rows} "
             f"last_trigger={status.last_sync_trigger}"
         )
+
+    if args.mcp_list_namespaces or args.mcp_list_tools_namespace:
+        server = PluginMcpServer(config)
+        if args.mcp_guard_source:
+            generation = server.set_guard_source(args.mcp_guard_source)
+            print(
+                "[rpa_plugin_skill] MCP_GUARD_REFRESH "
+                f"source={args.mcp_guard_source} generation={generation}"
+            )
+        if args.mcp_list_namespaces:
+            namespaces = server.list_namespaces()
+            print(f"[rpa_plugin_skill] MCP_NAMESPACES {','.join(namespaces)}")
+        if args.mcp_list_tools_namespace:
+            tools = server.list_tools(args.mcp_list_tools_namespace)
+            rendered = ",".join(tool.name for tool in tools)
+            print(
+                "[rpa_plugin_skill] MCP_NAMESPACE_TOOLS "
+                f"namespace={args.mcp_list_tools_namespace} tools={rendered}"
+            )
 
     if args.list_databases:
         dbs = list_databases(config)
