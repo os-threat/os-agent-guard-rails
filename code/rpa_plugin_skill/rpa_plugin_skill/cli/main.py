@@ -14,6 +14,8 @@ from rpa_plugin_skill.core.guard_mcp_registry import GuardMcpRegistry
 from rpa_plugin_skill.core.health import probe_typedb
 from rpa_plugin_skill.core.nl_rule_codegen import RuleValidationError
 from rpa_plugin_skill.core.openapi_registration_service import register_api_source
+from rpa_plugin_skill.core.openapi_to_typeql import ExtractBundle
+from rpa_plugin_skill.core.rest_sync_worker import RestSyncPlan, sync_rest_bundle_to_layer_a
 from rpa_plugin_skill.core.rule_composer import compose_rule_preview
 from rpa_plugin_skill.core.rule_service import (
     archive_rule_for_source,
@@ -196,6 +198,57 @@ def main() -> int:
         "--sync-watermark-gt",
         metavar="VALUE",
         help="Optional watermark lower bound (exclusive).",
+    )
+    parser.add_argument(
+        "--sync-rest-source",
+        metavar="REG_ID",
+        help="Registration id for REST->Layer A sync worker.",
+    )
+    parser.add_argument(
+        "--sync-rest-base-url",
+        metavar="URL",
+        help="Base REST URL for extract bundle execution.",
+    )
+    parser.add_argument(
+        "--sync-rest-path",
+        metavar="PATH",
+        help="REST path for extract bundle call (example: /clients).",
+    )
+    parser.add_argument(
+        "--sync-rest-method",
+        metavar="METHOD",
+        default="GET",
+        help="HTTP method for extract bundle call (default: GET).",
+    )
+    parser.add_argument(
+        "--sync-rest-target-entity",
+        metavar="ENTITY",
+        help="Layer A entity label for mapped REST rows (example: gra_client).",
+    )
+    parser.add_argument(
+        "--sync-rest-records-key",
+        metavar="KEY",
+        help="Optional response key containing row array (example: data).",
+    )
+    parser.add_argument(
+        "--sync-rest-pagination",
+        metavar="MODE",
+        default="none",
+        help="Pagination mode: none|next_link (default: none).",
+    )
+    parser.add_argument(
+        "--sync-rest-max-pages",
+        metavar="N",
+        type=int,
+        default=1,
+        help="Maximum pages to fetch for REST sync (default: 1).",
+    )
+    parser.add_argument(
+        "--sync-rest-rate-limit-ms",
+        metavar="MS",
+        type=int,
+        default=0,
+        help="Sleep between paged requests in milliseconds (default: 0).",
     )
     args = parser.parse_args()
 
@@ -449,6 +502,48 @@ def main() -> int:
             "[rpa_plugin_skill] SQL_SYNC "
             f"source={result.registration_id} layer_a_db={result.layer_a_db} "
             f"rows_synced={result.rows_synced} watermark_max={result.watermark_max}"
+        )
+
+    if (
+        args.sync_rest_source
+        or args.sync_rest_base_url
+        or args.sync_rest_path
+        or args.sync_rest_target_entity
+    ):
+        required_rest = [
+            args.sync_rest_source,
+            args.sync_rest_base_url,
+            args.sync_rest_path,
+            args.sync_rest_target_entity,
+        ]
+        if not all(required_rest):
+            raise SystemExit(
+                "--sync-rest-source --sync-rest-base-url --sync-rest-path "
+                "--sync-rest-target-entity must be provided together"
+            )
+        bundle = ExtractBundle(
+            operation_id=f"sync_{args.sync_rest_method.lower()}_{args.sync_rest_path.strip('/')}",
+            method=args.sync_rest_method.upper(),
+            path=args.sync_rest_path,
+            source_pointer=f"paths.{args.sync_rest_path}.{args.sync_rest_method.lower()}",
+            response_jsonpath="$.responses.200.body",
+            parameter_bindings={},
+        )
+        plan = RestSyncPlan(
+            registration_id=args.sync_rest_source,
+            base_url=args.sync_rest_base_url,
+            bundle=bundle,
+            target_entity=args.sync_rest_target_entity,
+            response_records_key=args.sync_rest_records_key,
+            pagination_mode=args.sync_rest_pagination,
+            max_pages=args.sync_rest_max_pages,
+            rate_limit_sleep_ms=args.sync_rest_rate_limit_ms,
+        )
+        result = sync_rest_bundle_to_layer_a(config, plan)
+        print(
+            "[rpa_plugin_skill] REST_SYNC "
+            f"source={result.registration_id} layer_a_db={result.layer_a_db} "
+            f"pages={result.pages_fetched} rows_synced={result.rows_synced}"
         )
 
     if args.list_databases:

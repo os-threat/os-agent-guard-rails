@@ -27,6 +27,7 @@ code/rpa_plugin_skill/
     nl_to_horn_codegen.md
     guard_mcp_hot_reload.md
     sql_sync_worker.md
+    rest_sync_worker.md
   rpa_plugin_skill/
     __main__.py
     cli/main.py
@@ -48,6 +49,7 @@ code/rpa_plugin_skill/
     core/nl_rule_codegen.py
     core/guard_mcp_registry.py
     core/sql_sync_worker.py
+    core/rest_sync_worker.py
   schema/layer_c/
     manifest.json
     MIGRATIONS.md
@@ -75,6 +77,7 @@ code/rpa_plugin_skill/
   tests/test_nl_rule_codegen.py
   tests/test_guard_mcp_registry.py
   tests/test_sql_sync_worker.py
+  tests/test_rest_sync_worker.py
   tests/fixtures/rule_ast/
   tests/golden/sql_to_typeql_sample.tql
   tests/golden/openapi_to_typeql_sample.tql
@@ -116,6 +119,7 @@ npm run rule:codegen:example
 npm run rule:archive:example
 npm run guard:mcp:list:example
 npm run sync:sql:example
+npm run sync:rest:example
 npm run layerc:migrate
 npm run layerb:migrate
 npm run layerb:contract
@@ -147,7 +151,8 @@ npm run format
 | **6.2** Rules composer UI | [#55](https://github.com/os-threat/os-agent-guard-rails/issues/55) (closed) |
 | **6.3** NL -> Horn AST -> TypeQL fun codegen | [#56](https://github.com/os-threat/os-agent-guard-rails/issues/56) (closed) |
 | **6.4** Guard MCP hot reload | [#57](https://github.com/os-threat/os-agent-guard-rails/issues/57) (closed) |
-| **7.1** SQL sync worker | [#58](https://github.com/os-threat/os-agent-guard-rails/issues/58) |
+| **7.1** SQL sync worker | [#58](https://github.com/os-threat/os-agent-guard-rails/issues/58) (closed) |
+| **7.2** REST sync worker | [#59](https://github.com/os-threat/os-agent-guard-rails/issues/59) |
 
 
 
