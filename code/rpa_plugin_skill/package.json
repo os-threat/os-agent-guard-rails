@@ -26,6 +26,8 @@
     "mcp:guard:tools:example": "python -m rpa_plugin_skill --mcp-guard-source sql-medical-alpha --mcp-list-tools-namespace guard",
     "mcp:guard:introspect:example": "python -m rpa_plugin_skill --mcp-guard-source sql-medical-alpha --mcp-guard-introspect-tool guard.gr_guard_fp_r01",
     "mcp:guard:invoke:example": "python -m rpa_plugin_skill --mcp-guard-source sql-medical-alpha --mcp-guard-invoke-tool guard.gr_guard_fp_r01 --mcp-guard-subject-key C-ALLOW",
+    "mcp:promise:declare:example": "python -m rpa_plugin_skill --mcp-promise-invoke-tool promise.declare --mcp-promise-payload-json \"{\\\"creator_id\\\":\\\"agent-a\\\",\\\"target_id\\\":\\\"agent-b\\\",\\\"promise_id\\\":\\\"promise-001\\\",\\\"promise_title\\\":\\\"Guarded run\\\"}\"",
+    "mcp:promise:query:example": "python -m rpa_plugin_skill --mcp-promise-invoke-tool promise.query --mcp-promise-payload-json \"{\\\"promise_id\\\":\\\"promise-001\\\"}\"",
     "layerc:migrate": "python -m scripts.migrate_layer_c",
     "layerb:migrate": "python -m scripts.migrate_layer_b",
     "layerb:contract": "python -m scripts.check_layer_b_contract",

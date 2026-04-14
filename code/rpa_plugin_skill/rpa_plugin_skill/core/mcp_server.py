@@ -10,6 +10,7 @@ from .config import AppConfig
 from .database_lifecycle import layer_a_db_name
 from .guard_mcp_registry import GuardMcpRegistry
 from .layer_c_store import LayerCStore
+from .promise_mcp_service import PromiseMcpService, PromiseToolResult
 from .typedb_bootstrap import connect_with_retry
 
 
@@ -42,6 +43,7 @@ class PluginMcpServer:
     def __init__(self, config: AppConfig, guard_registry: GuardMcpRegistry | None = None) -> None:
         self._config = config
         self._guard_registry = guard_registry or GuardMcpRegistry(config)
+        self._promise_service = PromiseMcpService(config)
         self._lock = threading.RLock()
         self._active_guard_source: str | None = None
         self._promise_tools: tuple[McpTool, ...] = (
@@ -118,6 +120,9 @@ class PluginMcpServer:
         if not descriptor:
             raise GuardToolInvocationError(f"Unknown guard tool: {tool_name}")
         return self._data_trace_for_source(source, descriptor.rule_id)
+
+    def invoke_promise_tool(self, tool_name: str, payload: dict) -> PromiseToolResult:
+        return self._promise_service.invoke(tool_name, payload)
 
     def _guard_tools(self) -> tuple[McpTool, ...]:
         with self._lock:

@@ -302,6 +302,16 @@ def main() -> int:
         metavar="TOOL",
         help="Show data-trace introspection for a guard tool.",
     )
+    parser.add_argument(
+        "--mcp-promise-invoke-tool",
+        metavar="TOOL",
+        help="Invoke promise MCP tool (declare|chain|assess|query).",
+    )
+    parser.add_argument(
+        "--mcp-promise-payload-json",
+        metavar="JSON",
+        help="JSON payload string used with --mcp-promise-invoke-tool.",
+    )
     args = parser.parse_args()
 
     config = AppConfig.from_env()
@@ -629,6 +639,7 @@ def main() -> int:
         or args.mcp_list_tools_namespace
         or args.mcp_guard_invoke_tool
         or args.mcp_guard_introspect_tool
+        or args.mcp_promise_invoke_tool
     ):
         server = PluginMcpServer(config)
         if args.mcp_guard_source:
@@ -672,6 +683,22 @@ def main() -> int:
                 "[rpa_plugin_skill] MCP_GUARD_INTROSPECT "
                 f"tool={args.mcp_guard_introspect_tool} "
                 f"trace={json.dumps(trace, ensure_ascii=True)}"
+            )
+        if args.mcp_promise_invoke_tool:
+            if not args.mcp_promise_payload_json:
+                raise SystemExit(
+                    "--mcp-promise-invoke-tool requires --mcp-promise-payload-json"
+                )
+            try:
+                payload = json.loads(args.mcp_promise_payload_json)
+            except json.JSONDecodeError as exc:
+                raise SystemExit(f"Invalid JSON for --mcp-promise-payload-json: {exc}") from exc
+            if not isinstance(payload, dict):
+                raise SystemExit("--mcp-promise-payload-json must decode to a JSON object")
+            result = server.invoke_promise_tool(args.mcp_promise_invoke_tool, payload)
+            print(
+                "[rpa_plugin_skill] MCP_PROMISE_INVOKE "
+                f"tool={result.tool_name} payload={json.dumps(result.payload, ensure_ascii=True)}"
             )
 
     if args.list_databases:
