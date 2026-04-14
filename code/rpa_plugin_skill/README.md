@@ -23,6 +23,7 @@ code/rpa_plugin_skill/
     openapi_to_typeql_mapping.md
     manual_api_registration_check.md
     rule_crud_semantics.md
+    rule_composer_ui.md
   rpa_plugin_skill/
     __main__.py
     cli/main.py
@@ -40,6 +41,7 @@ code/rpa_plugin_skill/
     core/openapi_to_typeql.py
     core/openapi_registration_service.py
     core/rule_service.py
+    core/rule_composer.py
   schema/layer_c/
     manifest.json
     MIGRATIONS.md
@@ -63,6 +65,7 @@ code/rpa_plugin_skill/
   tests/test_openapi_to_typeql.py
   tests/test_openapi_registration_service.py
   tests/test_rule_service.py
+  tests/test_rule_composer.py
   tests/golden/sql_to_typeql_sample.tql
   tests/golden/openapi_to_typeql_sample.tql
   dev/docker-compose.yml
@@ -98,6 +101,7 @@ npm run sql:register:example
 npm run sql:list:sources
 npm run api:register:example
 npm run rule:list:example
+npm run rule:compose:example
 npm run rule:archive:example
 npm run layerc:migrate
 npm run layerb:migrate
@@ -126,7 +130,8 @@ npm run format
 | **5.1** OpenAPI fetch + parse | [#51](https://github.com/os-threat/os-agent-guard-rails/issues/51) (closed) |
 | **5.2** OpenAPI -> TypeQL transpiler | [#52](https://github.com/os-threat/os-agent-guard-rails/issues/52) (closed) |
 | **5.3** API register flow | [#53](https://github.com/os-threat/os-agent-guard-rails/issues/53) (closed) |
-| **6.1** Rule list CRUD | [#54](https://github.com/os-threat/os-agent-guard-rails/issues/54) |
+| **6.1** Rule list CRUD | [#54](https://github.com/os-threat/os-agent-guard-rails/issues/54) (closed) |
+| **6.2** Rules composer UI | [#55](https://github.com/os-threat/os-agent-guard-rails/issues/55) |
 
 
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 
 from rpa_plugin_skill.core.config import AppConfig
 from rpa_plugin_skill.core.database_lifecycle import (
@@ -11,6 +12,7 @@ from rpa_plugin_skill.core.database_lifecycle import (
 )
 from rpa_plugin_skill.core.health import probe_typedb
 from rpa_plugin_skill.core.openapi_registration_service import register_api_source
+from rpa_plugin_skill.core.rule_composer import compose_rule_preview
 from rpa_plugin_skill.core.rule_service import (
     archive_rule_for_source,
     delete_rule_for_source,
@@ -135,6 +137,11 @@ def main() -> int:
         "--rule-undefine-query",
         metavar="QUERY",
         help="Optional TypeQL undefine query for --rule-delete.",
+    )
+    parser.add_argument(
+        "--rule-compose-preview",
+        action="store_true",
+        help="Render rule composer payload (NL left; Logic/TypeQL tabs right).",
     )
     args = parser.parse_args()
 
@@ -288,6 +295,31 @@ def main() -> int:
         print(
             f"[rpa_plugin_skill] RULE_DELETE source={args.rule_source} rule_id={args.rule_id}"
         )
+
+    if args.rule_compose_preview:
+        if not (args.rule_id and args.rule_name and args.rule_nl):
+            raise SystemExit(
+                "--rule-compose-preview requires --rule-id --rule-name --rule-nl"
+            )
+        preview = compose_rule_preview(
+            rule_id=args.rule_id,
+            rule_name=args.rule_name,
+            nl_text=args.rule_nl,
+        )
+        payload = {
+            "nl_left": preview.nl_text,
+            "logic_tab": {
+                "horn_clause": preview.logic_tab.horn_clause,
+                "diagram_mermaid": preview.logic_tab.diagram_mermaid,
+            },
+            "typeql_tab": {
+                "mode": preview.typeql_tab.mode,
+                "function_label": preview.typeql_tab.function_label,
+                "function_define_query": preview.typeql_tab.function_define_query,
+            },
+        }
+        rendered = json.dumps(payload, ensure_ascii=True)
+        print(f"[rpa_plugin_skill] RULE_COMPOSER {rendered}")
 
     if args.list_databases:
         dbs = list_databases(config)
