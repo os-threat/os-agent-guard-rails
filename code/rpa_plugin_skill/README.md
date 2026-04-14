@@ -34,6 +34,8 @@ code/rpa_plugin_skill/
     promise_mcp_tools.md
     correlation_trace.md
     task_crud_semantics.md
+    task_composer_ui.md
+    manual_task_composer_check.md
   rpa_plugin_skill/
     __main__.py
     cli/main.py
@@ -59,6 +61,8 @@ code/rpa_plugin_skill/
     core/sync_trigger_service.py
     core/mcp_server.py
     core/promise_mcp_service.py
+    core/task_service.py
+    core/task_composer.py
   schema/layer_c/
     manifest.json
     MIGRATIONS.md
@@ -91,6 +95,8 @@ code/rpa_plugin_skill/
   tests/test_mcp_server.py
   tests/test_guard_mcp_invoke.py
   tests/test_promise_mcp_service.py
+  tests/test_task_service.py
+  tests/test_task_composer.py
   tests/fixtures/rule_ast/
   tests/golden/sql_to_typeql_sample.tql
   tests/golden/openapi_to_typeql_sample.tql
@@ -128,6 +134,7 @@ npm run sql:list:sources
 npm run api:register:example
 npm run rule:list:example
 npm run rule:compose:example
+npm run task:compose:example
 npm run rule:codegen:example
 npm run rule:archive:example
 npm run guard:mcp:list:example
@@ -181,7 +188,8 @@ npm run format
 | **8.2** Guard MCP dynamic tools | [#62](https://github.com/os-threat/os-agent-guard-rails/issues/62) (closed) |
 | **9.1** Promise MCP tools | [#63](https://github.com/os-threat/os-agent-guard-rails/issues/63) (closed) |
 | **9.2** Guard/assessment correlation | [#64](https://github.com/os-threat/os-agent-guard-rails/issues/64) (closed) |
-| **10.1** Task list CRUD | [#65](https://github.com/os-threat/os-agent-guard-rails/issues/65) |
+| **10.1** Task list CRUD | [#65](https://github.com/os-threat/os-agent-guard-rails/issues/65) (closed) |
+| **10.2** Task composer UI | [#66](https://github.com/os-threat/os-agent-guard-rails/issues/66) |
 
 
 

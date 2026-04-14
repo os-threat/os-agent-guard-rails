@@ -37,6 +37,7 @@ from rpa_plugin_skill.core.sync_trigger_service import (
     trigger_manual_sql_sync,
     trigger_post_task_finalize_sync,
 )
+from rpa_plugin_skill.core.task_composer import compose_task_preview
 
 
 def main() -> int:
@@ -160,6 +161,21 @@ def main() -> int:
         "--rule-compose-preview",
         action="store_true",
         help="Render rule composer payload (NL left; Logic/TypeQL tabs right).",
+    )
+    parser.add_argument(
+        "--task-source",
+        metavar="REG_ID",
+        help="Task source registration id for task composer preview.",
+    )
+    parser.add_argument(
+        "--task-description",
+        metavar="TEXT",
+        help="Task description text for composer preview.",
+    )
+    parser.add_argument(
+        "--task-compose-preview",
+        action="store_true",
+        help="Render task composer payload (description left; flow chart right).",
     )
     parser.add_argument(
         "--guard-mcp-source",
@@ -519,6 +535,36 @@ def main() -> int:
         }
         rendered = json.dumps(payload, ensure_ascii=True)
         print(f"[rpa_plugin_skill] RULE_COMPOSER {rendered}")
+
+    if args.task_compose_preview:
+        if not (args.task_source and args.task_description):
+            raise SystemExit(
+                "--task-compose-preview requires --task-source and --task-description"
+            )
+        preview = compose_task_preview(
+            config=config,
+            registration_id=args.task_source,
+            description=args.task_description,
+        )
+        payload = {
+            "description_left": preview.description,
+            "flow_chart_right": {
+                "diagram_mermaid": preview.diagram_mermaid,
+                "steps": [
+                    {"id": step.step_id, "title": step.title, "detail": step.detail}
+                    for step in preview.flow_steps
+                ],
+            },
+            "schema_highlights": [
+                {"label": item.label, "kind": item.kind}
+                for item in preview.highlighted_objects
+            ],
+            "process_highlights": preview.highlighted_process_terms,
+            "layer_a_db": preview.layer_a_db,
+            "registration_id": preview.registration_id,
+        }
+        rendered = json.dumps(payload, ensure_ascii=True)
+        print(f"[rpa_plugin_skill] TASK_COMPOSER {rendered}")
 
     if args.guard_mcp_refresh or args.guard_mcp_list_tools:
         if not args.guard_mcp_source:
