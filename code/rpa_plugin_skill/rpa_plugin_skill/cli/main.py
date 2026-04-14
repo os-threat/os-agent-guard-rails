@@ -27,6 +27,7 @@ from rpa_plugin_skill.core.sql_registration_service import (
     register_sql_source,
     set_active_registration,
 )
+from rpa_plugin_skill.core.sql_sync_worker import SqlSyncPlan, sync_sql_rows_to_layer_a
 
 
 def main() -> int:
@@ -165,6 +166,36 @@ def main() -> int:
         "--guard-mcp-list-tools",
         action="store_true",
         help="List Guard MCP tool names (implies refresh for this process).",
+    )
+    parser.add_argument(
+        "--sync-sql-source",
+        metavar="REG_ID",
+        help="Registration id for SQL->Layer A sync worker.",
+    )
+    parser.add_argument(
+        "--sync-sql-dsn",
+        metavar="DSN",
+        help="Postgres DSN for SQL sync worker query execution.",
+    )
+    parser.add_argument(
+        "--sync-sql-query",
+        metavar="QUERY",
+        help="SQL query text for sync worker extraction.",
+    )
+    parser.add_argument(
+        "--sync-sql-table",
+        metavar="TABLE",
+        help="Logical SQL table name for Layer A entity/attribute mapping.",
+    )
+    parser.add_argument(
+        "--sync-watermark-column",
+        metavar="COLUMN",
+        help="Optional SQL watermark column for incremental syncs.",
+    )
+    parser.add_argument(
+        "--sync-watermark-gt",
+        metavar="VALUE",
+        help="Optional watermark lower bound (exclusive).",
     )
     args = parser.parse_args()
 
@@ -386,6 +417,38 @@ def main() -> int:
             "[rpa_plugin_skill] GUARD_MCP "
             f"source={args.guard_mcp_source} generation={generation} "
             f"tools={','.join(names)}"
+        )
+
+    if (
+        args.sync_sql_source
+        or args.sync_sql_dsn
+        or args.sync_sql_query
+        or args.sync_sql_table
+    ):
+        required_sync = [
+            args.sync_sql_source,
+            args.sync_sql_dsn,
+            args.sync_sql_query,
+            args.sync_sql_table,
+        ]
+        if not all(required_sync):
+            raise SystemExit(
+                "--sync-sql-source --sync-sql-dsn --sync-sql-query --sync-sql-table "
+                "must be provided together"
+            )
+        plan = SqlSyncPlan(
+            registration_id=args.sync_sql_source,
+            sql_dsn=args.sync_sql_dsn,
+            sql_query=args.sync_sql_query,
+            source_table=args.sync_sql_table,
+            watermark_column=args.sync_watermark_column,
+            watermark_gt=args.sync_watermark_gt,
+        )
+        result = sync_sql_rows_to_layer_a(config, plan)
+        print(
+            "[rpa_plugin_skill] SQL_SYNC "
+            f"source={result.registration_id} layer_a_db={result.layer_a_db} "
+            f"rows_synced={result.rows_synced} watermark_max={result.watermark_max}"
         )
 
     if args.list_databases:
