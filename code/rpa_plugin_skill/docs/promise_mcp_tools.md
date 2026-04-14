@@ -26,6 +26,7 @@ Per `skills/typedb/SKILL.md`:
 2. chain promise to task
 3. assess promise outcome
 4. query promise summary with assessment/action counts
+5. query by correlation id for dashboard trace linkage
 
 ## CLI examples
 

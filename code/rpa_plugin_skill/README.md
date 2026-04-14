@@ -32,6 +32,7 @@ code/rpa_plugin_skill/
     mcp_server_scaffold.md
     guard_mcp_tools.md
     promise_mcp_tools.md
+    correlation_trace.md
   rpa_plugin_skill/
     __main__.py
     cli/main.py
@@ -140,6 +141,7 @@ npm run mcp:guard:introspect:example
 npm run mcp:guard:invoke:example
 npm run mcp:promise:declare:example
 npm run mcp:promise:query:example
+npm run mcp:promise:trace:example
 npm run layerc:migrate
 npm run layerb:migrate
 npm run layerb:contract
@@ -176,7 +178,8 @@ npm run format
 | **7.3** Sync triggers + status | [#60](https://github.com/os-threat/os-agent-guard-rails/issues/60) (closed) |
 | **8.1** MCP scaffold + namespaces | [#61](https://github.com/os-threat/os-agent-guard-rails/issues/61) (closed) |
 | **8.2** Guard MCP dynamic tools | [#62](https://github.com/os-threat/os-agent-guard-rails/issues/62) (closed) |
-| **9.1** Promise MCP tools | [#63](https://github.com/os-threat/os-agent-guard-rails/issues/63) |
+| **9.1** Promise MCP tools | [#63](https://github.com/os-threat/os-agent-guard-rails/issues/63) (closed) |
+| **9.2** Guard/assessment correlation | [#64](https://github.com/os-threat/os-agent-guard-rails/issues/64) |
 
 
 

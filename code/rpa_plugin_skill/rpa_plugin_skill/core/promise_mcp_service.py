@@ -6,6 +6,7 @@ from typing import Any
 from typedb.driver import TransactionType
 
 from .config import AppConfig
+from .layer_c_store import LayerCStore
 from .typedb_bootstrap import connect_with_retry
 
 
@@ -117,6 +118,12 @@ put
         promise_id = _required(payload, "promise_id")
         notes = str(payload.get("notes", ""))
         assessor_name = str(payload.get("assessor_name", assessor_id))
+        correlation_id = str(payload.get("correlation_id", assessment_id))
+        layer_a_ref = str(payload.get("layer_a_ref", ""))
+        action_id = str(payload.get("action_id", f"action-{assessment_id}"))
+        rule_id = str(payload.get("rule_id", "unknown-rule"))
+        schema_hash = str(payload.get("schema_hash", "unknown-schema"))
+        sync_watermark = str(payload.get("sync_watermark", "unknown-watermark"))
 
         driver = connect_with_retry(self._config)
         try:
@@ -129,9 +136,17 @@ put
   $assessment isa grb_assessment,
     has grb_assessment_id "{assessment_id}",
     has grb_assessment_outcome "{outcome}",
-    has grb_assessment_notes "{notes}";
+    has grb_assessment_notes "{notes}",
+    has grb_correlation_id "{correlation_id}";
   $promise isa grb_promise, has grb_promise_id "{promise_id}";"""
                 ).resolve()
+                if layer_a_ref:
+                    tx.query(
+                        f"""match
+  $assessment isa grb_assessment, has grb_assessment_id "{assessment_id}";
+insert
+  $assessment has grb_layer_a_ref "{layer_a_ref}";"""
+                    ).resolve()
                 tx.query(
                     f"""match
   $assessor isa grb_agent, has grb_agent_id "{assessor_id}";
@@ -140,17 +155,63 @@ put
 put
   (assessor: $assessor, assessment: $assessment, promise: $promise) isa grb_assessment_binding;"""
                 ).resolve()
+                if outcome == "deny":
+                    tx.query(
+                        f"""put
+  $action isa grb_action,
+    has grb_action_id "{action_id}",
+    has grb_action_kind "guard_deny",
+    has grb_action_status "blocked";
+  $trace isa grb_data_trace,
+    has grb_data_trace_id "trace-{assessment_id}",
+    has grb_rule_id "{rule_id}",
+    has grb_schema_hash "{schema_hash}",
+    has grb_sync_watermark "{sync_watermark}",
+    has grb_correlation_id "{correlation_id}";
+  $promise isa grb_promise, has grb_promise_id "{promise_id}";
+  $assessor isa grb_agent, has grb_agent_id "{assessor_id}";"""
+                    ).resolve()
+                    if layer_a_ref:
+                        tx.query(
+                            f"""match
+  $trace isa grb_data_trace, has grb_data_trace_id "trace-{assessment_id}";
+insert
+  $trace has grb_layer_a_ref "{layer_a_ref}";"""
+                        ).resolve()
+                    tx.query(
+                        f"""match
+  $action isa grb_action, has grb_action_id "{action_id}";
+  $promise isa grb_promise, has grb_promise_id "{promise_id}";
+  $assessor isa grb_agent, has grb_agent_id "{assessor_id}";
+  $trace isa grb_data_trace, has grb_data_trace_id "trace-{assessment_id}";
+put
+  (actor: $assessor, action: $action, promise: $promise) isa grb_action_binding;
+  (action: $action, data_trace: $trace) isa grb_action_data_trace_binding;"""
+                    ).resolve()
                 tx.commit()
         finally:
             driver.close()
+
+        self._record_dashboard_trace(
+            correlation_id=correlation_id,
+            promise_id=promise_id,
+            assessment_id=assessment_id,
+            layer_a_ref=layer_a_ref or None,
+        )
 
         return {
             "assessment_id": assessment_id,
             "promise_id": promise_id,
             "outcome": outcome,
+            "correlation_id": correlation_id,
+            "layer_a_ref": layer_a_ref or None,
         }
 
     def _query(self, payload: dict[str, Any]) -> dict[str, Any]:
+        correlation_id = str(payload.get("correlation_id", "")).strip()
+        if correlation_id:
+            return self._query_by_correlation(correlation_id)
+
         promise_id = _required(payload, "promise_id")
         driver = connect_with_retry(self._config)
         try:
@@ -214,6 +275,58 @@ fetch {{
             "assessment_count": assessment_count,
             "action_count": action_count,
         }
+
+    def _query_by_correlation(self, correlation_id: str) -> dict[str, Any]:
+        dashboard = LayerCStore(self._config, ensure_schema=True)
+        promise_id = dashboard.fetch_setting(f"dashboard:{correlation_id}:promise_id")
+        assessment_id = dashboard.fetch_setting(f"dashboard:{correlation_id}:assessment_id")
+        layer_a_ref = dashboard.fetch_setting(f"dashboard:{correlation_id}:layer_a_ref")
+
+        driver = connect_with_retry(self._config)
+        try:
+            with driver.transaction(self._config.layer_b_db, TransactionType.READ) as tx:
+                docs_answer = tx.query(
+                    f"""match
+  $assessment isa grb_assessment,
+    has grb_correlation_id "{correlation_id}",
+    has grb_assessment_id $assessment_id,
+    has grb_assessment_outcome $outcome;
+  (promise: $promise, assessment: $assessment) isa grb_assessment_binding;
+  $promise has grb_promise_id $promise_id;
+fetch {{
+  "promise_id": $promise_id,
+  "assessment_id": $assessment_id,
+  "outcome": $outcome
+}};"""
+                ).resolve()
+                docs = (
+                    list(docs_answer.as_concept_documents())
+                    if docs_answer.is_concept_documents()
+                    else []
+                )
+        finally:
+            driver.close()
+
+        return {
+            "dashboard_row_id": correlation_id,
+            "promise_id": promise_id or (docs[0].get("promise_id") if docs else None),
+            "assessment_id": assessment_id or (docs[0].get("assessment_id") if docs else None),
+            "assessment_outcome": docs[0].get("outcome") if docs else None,
+            "layer_a_ref": layer_a_ref,
+        }
+
+    def _record_dashboard_trace(
+        self,
+        correlation_id: str,
+        promise_id: str,
+        assessment_id: str,
+        layer_a_ref: str | None,
+    ) -> None:
+        store = LayerCStore(self._config, ensure_schema=True)
+        store.upsert_setting(f"dashboard:{correlation_id}:promise_id", promise_id)
+        store.upsert_setting(f"dashboard:{correlation_id}:assessment_id", assessment_id)
+        if layer_a_ref:
+            store.upsert_setting(f"dashboard:{correlation_id}:layer_a_ref", layer_a_ref)
 
 
 def _required(payload: dict[str, Any], key: str) -> str:

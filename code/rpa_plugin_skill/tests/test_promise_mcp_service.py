@@ -90,3 +90,43 @@ class PromiseMcpServiceIntegrationTests(unittest.TestCase):
         self.assertEqual(queried.payload["promise_state"], "accepted")
         self.assertEqual(queried.payload["assessment_count"], 1)
 
+    def test_deny_assessment_correlation_trace_to_dashboard_row(self) -> None:
+        server = PluginMcpServer(self.cfg)
+        server.invoke_promise_tool(
+            "promise.declare",
+            {
+                "creator_id": "agent-a",
+                "target_id": "agent-b",
+                "promise_id": "promise-deny-001",
+                "promise_title": "Deny flow",
+            },
+        )
+        assessed = server.invoke_promise_tool(
+            "promise.assess",
+            {
+                "assessor_id": "agent-a",
+                "assessment_id": "assessment-deny-001",
+                "outcome": "deny",
+                "notes": "Denied by guard",
+                "promise_id": "promise-deny-001",
+                "correlation_id": "corr-001",
+                "layer_a_ref": "layera://sql-medical-alpha/patient/123",
+                "rule_id": "MED-R99",
+                "schema_hash": "hash-xyz",
+                "sync_watermark": "wm-001",
+            },
+        )
+        self.assertEqual(assessed.payload["correlation_id"], "corr-001")
+
+        traced = server.invoke_promise_tool(
+            "promise.query",
+            {"correlation_id": "corr-001"},
+        )
+        self.assertEqual(traced.payload["dashboard_row_id"], "corr-001")
+        self.assertEqual(traced.payload["assessment_id"], "assessment-deny-001")
+        self.assertEqual(traced.payload["promise_id"], "promise-deny-001")
+        self.assertEqual(
+            traced.payload["layer_a_ref"],
+            "layera://sql-medical-alpha/patient/123",
+        )
+

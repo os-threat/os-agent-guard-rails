@@ -4,5 +4,11 @@
     "file": "v1/001_define_layer_b.tql",
     "marker_label": "grb_agent",
     "description": "Initial Layer B promise graph subset for agent, promise, action, assessment, session, task, data-trace"
+  },
+  {
+    "id": "layer_b_v1_002",
+    "file": "v1/002_add_correlation_trace_fields.tql",
+    "marker_label": "grb_correlation_id",
+    "description": "Add correlation and optional Layer A reference fields for deny/appeal tracing"
   }
 ]
