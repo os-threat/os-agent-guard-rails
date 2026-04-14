@@ -10,6 +10,7 @@ from rpa_plugin_skill.core.database_lifecycle import (
     ensure_layer_a_database,
     list_databases,
 )
+from rpa_plugin_skill.core.guard_mcp_registry import GuardMcpRegistry
 from rpa_plugin_skill.core.health import probe_typedb
 from rpa_plugin_skill.core.nl_rule_codegen import RuleValidationError
 from rpa_plugin_skill.core.openapi_registration_service import register_api_source
@@ -149,6 +150,21 @@ def main() -> int:
         "--rule-compose-preview",
         action="store_true",
         help="Render rule composer payload (NL left; Logic/TypeQL tabs right).",
+    )
+    parser.add_argument(
+        "--guard-mcp-source",
+        metavar="REG_ID",
+        help="Registration id for Guard MCP registry refresh/list.",
+    )
+    parser.add_argument(
+        "--guard-mcp-refresh",
+        action="store_true",
+        help="Refresh in-process Guard MCP tool registry from Layer C (no process restart).",
+    )
+    parser.add_argument(
+        "--guard-mcp-list-tools",
+        action="store_true",
+        help="List Guard MCP tool names (implies refresh for this process).",
     )
     args = parser.parse_args()
 
@@ -357,6 +373,20 @@ def main() -> int:
         }
         rendered = json.dumps(payload, ensure_ascii=True)
         print(f"[rpa_plugin_skill] RULE_COMPOSER {rendered}")
+
+    if args.guard_mcp_refresh or args.guard_mcp_list_tools:
+        if not args.guard_mcp_source:
+            raise SystemExit(
+                "--guard-mcp-source is required for --guard-mcp-refresh / --guard-mcp-list-tools"
+            )
+        registry = GuardMcpRegistry(config)
+        generation = registry.refresh(args.guard_mcp_source)
+        names = registry.list_tool_names()
+        print(
+            "[rpa_plugin_skill] GUARD_MCP "
+            f"source={args.guard_mcp_source} generation={generation} "
+            f"tools={','.join(names)}"
+        )
 
     if args.list_databases:
         dbs = list_databases(config)
