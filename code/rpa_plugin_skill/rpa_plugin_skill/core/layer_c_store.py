@@ -322,6 +322,37 @@ fetch {
         finally:
             driver.close()
 
+    def fetch_registered_source(self, registration_id: str) -> dict | None:
+        driver = connect_with_retry(self.config)
+        try:
+            with driver.transaction(self.config.layer_c_db, TransactionType.READ) as tx:
+                answer = tx.query(
+                    f'''match
+  $s isa gr_registered_source,
+    has gr_registration_id "{registration_id}",
+    has gr_source_name $name,
+    has gr_source_kind $kind,
+    has gr_source_url $url,
+    has gr_source_description $description,
+    has gr_source_is_active $active;
+fetch {{
+  "registration_id": "{registration_id}",
+  "source_name": $name,
+  "source_kind": $kind,
+  "source_url": $url,
+  "source_description": $description,
+  "source_is_active": $active
+}};'''
+                ).resolve()
+                if not answer.is_concept_documents():
+                    return None
+                docs = list(answer.as_concept_documents())
+                if not docs:
+                    return None
+                return dict(docs[0])
+        finally:
+            driver.close()
+
     def fetch_rules_for_source(self, registration_id: str) -> list[dict]:
         driver = connect_with_retry(self.config)
         try:

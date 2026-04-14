@@ -38,6 +38,10 @@ from rpa_plugin_skill.core.sync_trigger_service import (
     trigger_post_task_finalize_sync,
 )
 from rpa_plugin_skill.core.task_composer import compose_task_preview
+from rpa_plugin_skill.core.task_plan_loader import (
+    TaskPlanError,
+    prepare_task_for_schedule,
+)
 
 
 def main() -> int:
@@ -176,6 +180,16 @@ def main() -> int:
         "--task-compose-preview",
         action="store_true",
         help="Render task composer payload (description left; flow chart right).",
+    )
+    parser.add_argument("--task-id", metavar="TASK_ID", help="Task identifier.")
+    parser.add_argument("--task-name", metavar="TASK_NAME", help="Task display name.")
+    parser.add_argument(
+        "--task-prepare-load",
+        action="store_true",
+        help=(
+            "Convert task description into SQL/API extract plan, load Layer A, "
+            "and mark task ready to schedule."
+        ),
     )
     parser.add_argument(
         "--guard-mcp-source",
@@ -565,6 +579,31 @@ def main() -> int:
         }
         rendered = json.dumps(payload, ensure_ascii=True)
         print(f"[rpa_plugin_skill] TASK_COMPOSER {rendered}")
+
+    if args.task_prepare_load:
+        required = [args.task_source, args.task_id, args.task_name, args.task_description]
+        if not all(required):
+            raise SystemExit(
+                "--task-prepare-load requires --task-source --task-id --task-name "
+                "--task-description"
+            )
+        try:
+            preview = prepare_task_for_schedule(
+                config=config,
+                registration_id=args.task_source,
+                task_id=args.task_id,
+                task_name=args.task_name,
+                task_description=args.task_description,
+            )
+        except TaskPlanError as exc:
+            raise SystemExit(f"Invalid task plan: {exc}") from exc
+
+        print(
+            "[rpa_plugin_skill] TASK_READY_TO_SCHEDULE "
+            f"source={preview.registration_id} task_id={preview.task_id} "
+            f"status={preview.task_status} rows_loaded={preview.rows_loaded} "
+            f"plan={preview.plan_summary}"
+        )
 
     if args.guard_mcp_refresh or args.guard_mcp_list_tools:
         if not args.guard_mcp_source:
