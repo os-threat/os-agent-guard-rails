@@ -208,7 +208,7 @@ npm run format
 | **10.2** Task composer UI | [#66](https://github.com/os-threat/os-agent-guard-rails/issues/66) (closed) |
 | **10.3** Task plan + Layer A load | [#67](https://github.com/os-threat/os-agent-guard-rails/issues/67) (closed) |
 | **11.1** OpenClaw schedules | [#68](https://github.com/os-threat/os-agent-guard-rails/issues/68) (closed) |
-| **11.2** Run orchestrator | [#69](https://github.com/os-threat/os-agent-guard-rails/issues/69) |
+| **11.2** Run orchestrator | [#69](https://github.com/os-threat/os-agent-guard-rails/issues/69) (closed) |
 
 
 
