@@ -39,6 +39,7 @@ code/rpa_plugin_skill/
     task_plan_load.md
     manual_task_ready_schedule_check.md
     openclaw_schedule_contract.md
+    task_run_orchestrator.md
   rpa_plugin_skill/
     __main__.py
     cli/main.py
@@ -68,6 +69,7 @@ code/rpa_plugin_skill/
     core/task_composer.py
     core/task_plan_loader.py
     core/task_schedule_service.py
+    core/task_run_orchestrator.py
   examples/
     openclaw_cron_task_executor.example.json
   schema/layer_c/
@@ -106,6 +108,7 @@ code/rpa_plugin_skill/
   tests/test_task_composer.py
   tests/test_task_plan_loader.py
   tests/test_task_schedule_service.py
+  tests/test_task_run_orchestrator.py
   tests/fixtures/rule_ast/
   tests/golden/sql_to_typeql_sample.tql
   tests/golden/openapi_to_typeql_sample.tql
@@ -147,6 +150,7 @@ npm run task:compose:example
 npm run task:prepare:example
 npm run task:schedule:example
 npm run task:schedule:list:example
+npm run task:run:example
 npm run rule:codegen:example
 npm run rule:archive:example
 npm run guard:mcp:list:example
@@ -203,7 +207,8 @@ npm run format
 | **10.1** Task list CRUD | [#65](https://github.com/os-threat/os-agent-guard-rails/issues/65) (closed) |
 | **10.2** Task composer UI | [#66](https://github.com/os-threat/os-agent-guard-rails/issues/66) (closed) |
 | **10.3** Task plan + Layer A load | [#67](https://github.com/os-threat/os-agent-guard-rails/issues/67) (closed) |
-| **11.1** OpenClaw schedules | [#68](https://github.com/os-threat/os-agent-guard-rails/issues/68) |
+| **11.1** OpenClaw schedules | [#68](https://github.com/os-threat/os-agent-guard-rails/issues/68) (closed) |
+| **11.2** Run orchestrator | [#69](https://github.com/os-threat/os-agent-guard-rails/issues/69) |
 
 
 

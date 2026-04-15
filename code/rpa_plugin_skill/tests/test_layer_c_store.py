@@ -144,6 +144,10 @@ class LayerCStoreIntegrationTests(unittest.TestCase):
         self.assertIn("Extract updated records", rendered)
         self.assertIn("scheduled", rendered)
 
+        single = store.fetch_task_for_source("reg-task-1", "task-001")
+        self.assertIsNotNone(single)
+        self.assertIn("task-001", str(single))
+
         store.upsert_task_schedule(
             task_id="task-001",
             schedule_id="sched-001",

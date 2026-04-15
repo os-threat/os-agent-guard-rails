@@ -411,6 +411,36 @@ fetch {{
         finally:
             driver.close()
 
+    def fetch_task_for_source(self, registration_id: str, task_id: str) -> dict | None:
+        driver = connect_with_retry(self.config)
+        try:
+            with driver.transaction(self.config.layer_c_db, TransactionType.READ) as tx:
+                answer = tx.query(
+                    f'''match
+  $source isa gr_registered_source, has gr_registration_id "{registration_id}";
+  $binding (source: $source, task: $task) isa gr_source_task_binding;
+  $task has gr_task_id "{task_id}",
+    has gr_task_name $name,
+    has gr_task_description $description,
+    has gr_extract_plan_ref $extract_plan_ref,
+    has gr_task_status $status;
+fetch {{
+  "task_id": "{task_id}",
+  "task_name": $name,
+  "task_description": $description,
+  "extract_plan_ref": $extract_plan_ref,
+  "task_status": $status
+}};'''
+                ).resolve()
+                if not answer.is_concept_documents():
+                    return None
+                docs = list(answer.as_concept_documents())
+                if not docs:
+                    return None
+                return dict(docs[0])
+        finally:
+            driver.close()
+
     def upsert_task_schedule(
         self,
         task_id: str,

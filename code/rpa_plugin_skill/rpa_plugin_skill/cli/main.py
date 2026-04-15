@@ -42,6 +42,7 @@ from rpa_plugin_skill.core.task_plan_loader import (
     TaskPlanError,
     prepare_task_for_schedule,
 )
+from rpa_plugin_skill.core.task_run_orchestrator import TaskRunError, run_task_orchestration
 from rpa_plugin_skill.core.task_schedule_service import (
     list_task_schedules,
     upsert_task_schedule,
@@ -228,6 +229,36 @@ def main() -> int:
         "--task-schedule-list",
         action="store_true",
         help="List task schedules for --task-source.",
+    )
+    parser.add_argument(
+        "--task-run",
+        action="store_true",
+        help=(
+            "Run task orchestration: resync Layer A, Guard precheck, then Act or Deny "
+            "(Promise MCP logging)."
+        ),
+    )
+    parser.add_argument(
+        "--task-guard-tool",
+        metavar="TOOL",
+        help="Guard MCP tool name for task run precheck (example: guard.gr_guard_fp_r99).",
+    )
+    parser.add_argument(
+        "--task-guard-subject-key",
+        metavar="KEY",
+        help="Subject key passed to the guard tool during task run.",
+    )
+    parser.add_argument(
+        "--task-run-agent-id",
+        metavar="AGENT_ID",
+        default="openclaw-runner",
+        help="Agent id for promise graph logging during task run.",
+    )
+    parser.add_argument(
+        "--task-run-agent-name",
+        metavar="NAME",
+        default="OpenClaw Runner",
+        help="Agent display name for promise graph logging during task run.",
     )
     parser.add_argument(
         "--guard-mcp-source",
@@ -673,6 +704,52 @@ def main() -> int:
             raise SystemExit("--task-schedule-list requires --task-source")
         docs = list_task_schedules(config, args.task_source)
         print(f"[rpa_plugin_skill] TASK_SCHEDULES source={args.task_source} docs={docs}")
+
+    if args.task_run:
+        required_run = [
+            args.task_source,
+            args.task_id,
+            args.task_guard_tool,
+            args.task_guard_subject_key,
+        ]
+        if not all(required_run):
+            raise SystemExit(
+                "--task-run requires --task-source --task-id --task-guard-tool "
+                "--task-guard-subject-key"
+            )
+        try:
+            run_result = run_task_orchestration(
+                config=config,
+                registration_id=args.task_source,
+                task_id=args.task_id,
+                guard_tool=args.task_guard_tool,
+                subject_key=args.task_guard_subject_key,
+                agent_id=args.task_run_agent_id,
+                agent_name=args.task_run_agent_name,
+            )
+        except TaskRunError as exc:
+            raise SystemExit(f"Task run failed: {exc}") from exc
+
+        payload = {
+            "path": run_result.path,
+            "phases_completed": list(run_result.phases_completed),
+            "sync_rows_loaded": run_result.sync_rows_loaded,
+            "guard_tool": run_result.guard_tool,
+            "subject_key": run_result.subject_key,
+            "guard_decision": run_result.guard_decision,
+            "precheck_passed": run_result.precheck_passed,
+            "promise_id": run_result.promise_id,
+            "assessment_id": run_result.assessment_id,
+            "correlation_id": run_result.correlation_id,
+            "rpa_steps": list(run_result.rpa_steps),
+            "review": run_result.review,
+        }
+        rendered = json.dumps(payload, ensure_ascii=True)
+        print(
+            "[rpa_plugin_skill] TASK_RUN "
+            f"source={run_result.registration_id} task_id={run_result.task_id} "
+            f"{rendered}"
+        )
 
     if args.guard_mcp_refresh or args.guard_mcp_list_tools:
         if not args.guard_mcp_source:
