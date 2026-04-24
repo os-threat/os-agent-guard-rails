@@ -1,4 +1,0 @@
-typedb-driver==3.8.1
-ruff==0.11.5
-PyYAML==6.0.3
-psycopg[binary]==3.3.3

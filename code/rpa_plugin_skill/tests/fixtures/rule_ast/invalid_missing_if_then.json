@@ -1,5 +1,0 @@
-{
-  "id": "rule-invalid-001",
-  "nl_text": "Concentration high deny recommendation",
-  "expected_error_contains": "Rule must match"
-}
